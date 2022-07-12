@@ -1,0 +1,251 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+```
+
+```{r}
+all_deaths
+```
+
+```{r}
+nrow(all_deaths)
+```
+```{r}
+ncol(all_deaths)
+```
+
+```{r}
+dim(all_deaths)
+```
+
+```{r}
+names(all_deaths)
+```
+
+```{r}
+head(all_deaths, 10)
+```
+
+```{r}
+tail(all_deaths, 1)
+```
+
+```{r}
+glimpse(all_deaths)
+```
+```{r}
+summary(all_deaths)
+```
+
+```{r}
+str(all_deaths)
+```
+
+#Opens in separate window like Excel
+```{r}
+view(all_deaths)
+```
+
+```{r}
+test <- all_deaths
+```
+
+```{r}
+select(all_deaths, name, allegiances, gender, nobility, year_of_death)
+```
+
+```{r}
+deaths_no_name <- select(all_deaths, -name)
+```
+
+```{r}
+deaths_no_name
+```
+
+Select all columns which relate to a book
+Select the columns which are related to some kind of death
+
+```{r}
+select(all_deaths, contains("book"))
+```
+```{r}
+select(all_deaths, contains("death"))
+```
+
+```{r}
+select(all_deaths, name:book_of_death)
+```
+
+```{r}
+all_deaths
+```
+
+== tests if two things are equal.
+!= tests if two things are not equal.
+< tests if the left is less than the right.
+> tests if the left is greater than the right.
+<= tests if the left is less than or equal to the right, >= tests for greater than or equal to.
+%in% tests if the left is contained in the right.
+
+```{r}
+filter(all_deaths, allegiances != "Lannister")
+```
+
+```{r}
+filter(all_deaths, allegiances %in% c("Lannister", "House Lannister"))
+```
+
+```{r}
+filter(all_deaths, year_of_death >= 299)
+```
+
+```{r}
+filter(all_deaths, allegiances == "None")
+```
+& and
+| or
+```{r}
+filter(all_deaths, allegiances == "Lannister" & nobility == 1)
+```
+
+```{r}
+filter(all_deaths, allegiances == "Lannister" | nobility ==1)
+```
+
+```{r}
+filter(all_deaths, 
+       book_intro_chapter >= 5 & book_intro_chapter <= 10)
+```
+
+```{r}
+filter(all_deaths, between(book_intro_chapter, 5, 10))
+```
+
+```{r}
+filter(all_deaths, str_detect(allegiances, "Lannister"))
+```
+
+Find where the year_of_death is less than or equal to 299
+Find the females(gender is 0) who are not Lannisters
+Find just the data for the characters "Jon Snow", "Daenerys Targaryen" and "Samwell Tarley"
+
+```{r}
+filter(all_deaths, year_of_death <= 299)
+```
+
+```{r}
+filter(all_deaths, gender == 0 & allegiances != "Lannister")
+```
+
+```{r}
+filter(all_deaths, 
+       name == "Jon Snow" | 
+         name == "Daenerys Targaryen" | 
+         name == "Samwell Tarly")
+```
+
+```{r}
+filter(all_deaths, name %in% c("Jon Snow", "Daenerys Targaryen", "Samwell Tarly"))
+```
+
+```{r}
+arrange(all_deaths, book_intro_chapter)
+```
+
+```{r}
+arrange(all_deaths, desc(book_intro_chapter))
+```
+
+```{r}
+arrange(all_deaths, book_of_death, death_chapter)
+```
+
+Arrange all deaths by allegiances. 
+What happens when you arrange by a character column?
+It puts them in alphabetical order
+Arrange all deaths by allegiances and book intro chapter
+Arrange all deaths by descending year of death
+
+```{r}
+arrange(all_deaths, allegiances)
+```
+
+```{r}
+arrange(all_deaths, allegiances, book_intro_chapter)
+```
+
+```{r}
+arrange(all_deaths, desc(year_of_death))
+```
+
+```{r}
+mutate(all_deaths, years_survived = year_of_death - 298, 
+       .after = year_of_death)
+```
+
+```{r}
+mutate(all_deaths, 
+       test = "test")
+```
+
+```{r}
+mutate(all_deaths, 
+       year_of_death = is.na(year_of_death))
+```
+
+```{r}
+mutate(all_deaths, 
+       nobility = as.logical(nobility))
+```
+
+```{r}
+mutate(all_deaths, 
+       avg_death = mean(year_of_death, na.rm = TRUE))
+```
+
+```{r}
+summarise(all_deaths, 
+          avg_death = mean(year_of_death, na.rm = TRUE), 
+          sum_males = sum(gender))
+```
+
+```{r}
+deaths_grouped <- group_by(all_deaths, allegiances)
+```
+
+```{r}
+summarise(deaths_grouped,
+          character_count = n())
+```
+
+```{r}
+deaths_grouped <- group_by(all_deaths, nobility, gender)
+```
+
+```{r}
+summarise(deaths_grouped,
+          char_count = n())
+```
+
+```{r}
+have_died <- filter(all_deaths, !is.na(book_of_death)) 
+
+died_grouped <- group_by(have_died, allegiances)
+died_counts <- summarise(died_grouped, count = n())
+
+arrange(died_counts, desc(count))
+```
+
+```{r}
+all_deaths %>% 
+  filter(!is.na(book_of_death)) %>% 
+  group_by(allegiances) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+```rt
+
