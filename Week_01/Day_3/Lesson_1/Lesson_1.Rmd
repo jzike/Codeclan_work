@@ -1,0 +1,354 @@
+---
+title: "Day 3 - Cleaning, missing values, recoding"
+output: html_notebook
+---
+##Session 1 -- Cleaing data
+-Be introduced to the concept of Data Cleaning
+-Know about some common issues that can exist within datasets
+-Be able to deal with these common issues
+
+###Packages
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+```{r}
+library(CodeClanData)
+```
+
+###Functions
+
+'janitor::clean_names('
+'rename()'
+
+###Data
+
+```{r}
+video_games <- read_csv("steam-200k-sample.csv")
+```
+
+```{r}
+video_games
+```
+
+The first 4 lines are "meta data" or data about data
+```{r}
+read_csv("steam-200k-sample.csv", skip = 4)
+```
+
+```{r}
+video_games <- read_csv("steam-200k-sample.csv", 
+         skip = 4,
+         col_types = cols("bought online" = col_logical()))
+video_games
+
+read_csv("steam-200k-sample.csv", skip = 4) %>%
+  mutate(`bought online` = as.logical(`bought online`))
+```
+
+```{r}
+names(video_games)
+
+video_games_janitor_clean <- video_games %>% 
+  clean_names()
+video_games_janitor_clean
+```
+
+```{r}
+video_games_janitor_clean %>% 
+  rename("game_title" = "game_name", 
+         "activity" = "what",
+         "playing_hours" = "value")
+```
+
+##Session 2 -- Missing values
+
+- Understand the challenges of missing and null values
+    - missing is not the same as null
+- Know potential methods of dealing with missing values
+- Identify why the data was missing - random or pattern
+- Be able to identify and justify the approach taqken for each missing data item
+- Be able to tidy up a dataset and deal with missing values
+
+### Functions
+is.na()
+drop_na()
+coalesce() <--> na_if() #They are complements of each other
+na_if()
+as.numeric()
+as.****()
+
+Sneak peak at "ggplot2"
+
+### Data
+
+```{r}
+comms_data
+```
+
+MCAR - Missing completely at random - analyses can accomodate
+MAR - Missing at random - maybe okay, but the missing data could be related to another confounding variable
+MNAR - Bad news, the data is missing due to an underlying pattern within the same variable
+NaN - Not a number - e.g. 0/0
+Inf - Infinity
+NULL - complete lack of a value
+"Unknown" - character representation of an unknown value
+NA - How we explicitly encode missingness
+
+
+###Drop all NAs
+but this could lead to losing a lot of data
+```{r}
+comms_data %>% 
+  drop_na()
+```
+
+#Imputation
+Replace the NAs with ... something sensible
+Maybe the mean or the median
+```{r}
+comms_data %>% 
+  pull(monthly_charges) %>% 
+  mean(na.rm = TRUE)
+
+comms_data %>% 
+  pull(monthly_charges) %>% 
+  median(na.rm = TRUE)
+
+min_charge <- comms_data %>% 
+  pull(monthly_charges) %>% 
+  min(na.rm = TRUE)
+
+max_charge <- comms_data %>% 
+  pull(monthly_charges) %>% 
+  max(na.rm = TRUE)
+
+max_charge - min_charge
+
+summary(comms_data)
+```
+
+## Leave them alone?
+Most functions in R have a default way of dealing with NAs, so we need to be aware
+of how they are handled by default
+
+"is.na()"
+
+```{r}
+comms_data
+```
+
+##Standard missing values
+
+'NA'
+
+
+```{r}
+comms_data
+comms_data %>% 
+  filter(is.na(monthly_charges))
+
+#Tells you the percentage of missing data
+comms_data %>% pull(monthly_charges) %>% 
+  is.na() %>% 
+  mean()
+
+
+comms_data %>% 
+  summarise(count = sum(is.na(monthly_charges)))
+```
+
+##Imputation
+coalesce(thing to fix, thing to fix with)
+
+```{r}
+comms_data_imputed_median <- comms_data %>% 
+  mutate(monthly_charges)
+
+comms_data %>% 
+  select(monthly_charges) %>% 
+  mutate(monthly_charges2 = coalesce(monthly_charges, 
+                                     median(monthly_charges, na.rm = TRUE)))
+
+summary(comms_data)
+```
+
+```{r}
+comms_data_imputed_values <- comms_data %>% 
+  mutate(monthly_charges_median = coalesce(monthly_charges, 
+                                           median(monthly_charges, na.rm = TRUE)),
+         monthly_charges_mean = coalesce(monthly_charges, 
+                                         mean(monthly_charges, na.rm = TRUE)),
+         .after = monthly_charges)
+
+comms_data_imputed_values %>% summary
+comms_data %>% summary
+```
+
+```{r}
+
+ggplot(comms_data_imputed_values, aes(customerID, monthly_charges_median)) +
+  geom_point()
+
+ggplot(comms_data_imputed_values, aes(customerID, monthly_charges_mean)) +
+  geom_point()
+```
+
+### Non-standard missing values
+
+Take a look
+
+```{r}
+comms_data %>% 
+  pull(payment_method)
+```
+
+```{r}
+comms_data %>% 
+  pull(total_charges)
+```
+
+'na_if() -- kind of like coalesce, but instead of taking NAs and converting them into a value, it
+converts different strings into NA 
+
+```{r}
+comms_data_imputed_values %>% 
+  select(total_charges) %>% ##can delete safely, just for demonstration
+  mutate(total_charges_explicit_na = na_if(total_charges, "na"),
+         total_charges_explicit_na2 = na_if(total_charges, "N/A"))
+```
+
+```{r}
+comms_data_imputed_values %>% 
+  mutate(total_charges = na_if(total_charges, "na"),
+         total_charges = na_if(total_charges, "N/A"))
+```
+
+```{r}
+comms_data_cleaned <- comms_data %>% 
+  mutate(total_charges = na_if(total_charges, "na"),
+         total_charges = na_if(total_charges, "N/A"),
+         payment_method = na_if(payment_method, "--"),
+         payment_method = coalesce(payment_method, "unknown"))
+comms_data_cleaned
+```
+
+##Recoding
+
+-Understanding _what_ recoding is
+-Know how to use the functions `if_else`, `recode` and `case_when`
+-Understand _when_ to use each function.
+
+###Data
+
+```{r}
+CodeClanData::students_big
+```
+
+### `if_else(`)
+-`if_else(TEST, value if TRUE, value if FALSE)`
+
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(older_than_12 = ageyears > 12)
+```
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(older_than_12 = if_else(ageyears > 12, "Older than 12", "12 or younger"))
+```
+
+
+```{r}
+students_big %>% 
+  select(gender) %>% 
+  mutate(gender_recoded = if_else(gender == "M", "Male", "Female"))
+```
+
+```{r}
+students_big %>% 
+  mutate(handed_recoded = if_else(handed == "R", "Right", "Left"),
+         favourite_physical_activity_recoded = if_else 
+         (favourite_physical_activity == "Football/Soccer", "Football", favourite_physical_activity))
+```
+
+##`recode()`
+
+```{r}
+students_big %>% 
+  select(travel_to_school) %>% 
+  mutate(travel_to_school_recoded = recode(travel_to_school,
+                                           "Bus" = "bus",
+                                           "Car" = "car",
+                                           "Walk" = "walk"))
+students_big %>% 
+  count(travel_to_school)
+
+students_big %>% 
+  select(travel_to_school) %>% 
+  mutate(travel_to_school_recoded = recode(travel_to_school,
+                                           "Bus" = "bus",
+                                           "Car" = "car",
+                                           "Walk" = "walk",
+                                           .default = "other"))
+```
+
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(ageyears_recoded = recode(ageyears, "12" = 120,
+                           .default = 0))
+```
+
+
+```{r}
+data <- read.table(header = TRUE, text="
+ subject sex control cond1 cond2 compl
+       1   M     7.9  12.3  10.7  T
+       2   F     6.3  10.6  11.1  T
+       3   F     9.5  13.1  13.8  N
+       4   M    11.5  13.4  12.9  F
+")
+```
+
+```{r}
+data %>% 
+  mutate(subject = recode(subject,
+                          "1" = "001",
+                          "2" = "002",
+                          "3" = "003",
+                          "4" = "004"),
+         sex = recode(sex, 
+                      "M" = "Male",
+                      "F" = "Female"),
+         compl = recode(compl, "T" = "True",
+                        "F" = "False",
+                        .default = NA_character_))
+```
+
+##`case_when()`
+
+```{r}
+x <- 1:10
+
+case_when(x <= 5 ~ "A",
+          x<= 7 ~ "B",
+          TRUE ~ "C")
+```
+
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(
+    age_divisible = case_when(
+      ageyears %% 2 == 0 ~ "Even",
+      ageyears %% 3 == 0 ~ "Divisible by 3",
+      ageyears %% 5 == 0 ~ "Divisible by 5",
+      TRUE               ~ "Other number"
+    )
+  )
+```
+
