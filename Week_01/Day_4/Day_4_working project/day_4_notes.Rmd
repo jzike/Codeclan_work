@@ -6,6 +6,7 @@ output: html_notebook
 ```{r}
 library(tidyverse)
 ```
+##Part 1 - Coding best practices
 ```{r}
 amount_spent <- c(9.1, 8.55, 14.32, 14.17, 14.34, 7.97, 9.79, 11.47, 12.44)
 category <- c(
@@ -32,21 +33,166 @@ summarise(
 )
 ```
 
-AmountSpent -> c(9.1, 8.55, 14.32, 14.17, 14.34, 7.97, 9.79, 11.47, 12.44)
-Category <- c(
-"Lunch",
-"Dinner",
-"Lunch",
-"Lunch",
-"Cinema",
-"Drinks",
-"Lunch",
-"Lunch",
-"Dinner")
-my_week_of_spending <- tibble(
-AmountSpent = AmountSpent, SpendingCategory = Category)
-str(my.week.of.spending)
-View(my.week.of.spending)
-my.week.of.spending
-summarise(my.week.of.spending,sum(AmountSpent))
-summarise(filter(my.week.of.spending,SpendingCategory=='Lunch'),sum(AmountSpent))
+##Part 2 - Errors
+
+#checking type of data
+```{r}
+class(mtcars)
+```
+#Conflicting functions
+Such as using #library(dplyr) and #library(MASS) at the same time
+
+
+#B/c both MASS and dplyr have a function called select, you have to specify 
+which you want to run since one is masking the other
+```{r}
+mtcars %>% 
+  dplyr::select(mpg)
+```
+##Show conflicts
+```{r}
+conflicts()
+```
+
+##Errors lab
+
+##Error 1
+#Original error
+some_letters <- ("E", "R", "R", "O", "R)
+
+#fixed
+```{r}
+some_letters <- c("E", "R", "R", "O", "R")
+some_letters
+```
+
+##Error 2
+#Original error
+message <- c("does", "this" "work", "?")
+
+toupper(messege)
+
+#fixed
+```{r}
+message <- c("does", "this", "work", "?")
+
+toupper(message)
+```
+
+##Error 3
+#Original error
+mtcars %>% 
+  select(mpg, cyl, disp) %>>%
+  filter(mpg < 20)
+
+#Fixed
+```{r}
+mtcars %>% 
+  select(mpg, cyl, disp) %>%
+  filter(mpg < 20)
+```
+
+##Error 4
+#Original error
+iris %>% 
+  select(Sepal.Width, Species) %>% 
+  arrange(Sepal.Length)
+  
+#Fixed
+```{r}
+iris %>% 
+  select(Sepal.Length, Sepal.Width, Species) %>% 
+  arrange(Sepal.Length)
+```
+
+##Error 5
+#Original error
+ToothGrowth %>%
+  summarise(avg_len_vc = mean(len)) %>% 
+  filter(supp == "VC")
+  
+#Fixed
+```{r}
+ToothGrowth %>%
+  filter(supp == "VC") %>% 
+  summarise(avg_len_vc = mean(len))
+```
+
+
+
+##Error 6
+#Original error
+animals <- c("cat", dog, "rabbit", "horse")
+sample(animals, 10)
+
+#Fixed
+```{r}
+animals <- c("cat", "dog", "rabbit", "horse")
+sample(animals, 10, replace = TRUE)
+```
+
+##Error 7
+#Original error
+dog_names <- c("Lucy", "Molly", "Charlie", "Luna", "Bella", "Cooper")
+
+cat_names < c("Luna", "Lily", "Lucy", "Charlie", "Max", "Oliver")
+Intersect(dog_names)
+
+#Fixed
+```{r}
+dog_names <- c("Lucy", "Molly", "Charlie", "Luna", "Bella", "Cooper")
+
+cat_names <- c("Luna", "Lily", "Lucy", "Charlie", "Max", "Oliver")
+
+intersect(dog_names, cat_names)
+```
+
+##Error 8 
+#Original error
+chickwts %>% 
+  filter(weight =< 150) %>% 
+  mutate(weight_kg == weight * 0.001)
+  
+#Fixed
+```{r}
+chickwts %>% 
+  filter(weight <= 150) %>% 
+  mutate(weight_kg = weight * 0.001)
+```
+
+##Error 9
+#Original error
+tibble(alphabet = LETTERS(),
+       numbers = 1:25) %>% 
+  filter(letter != c(A, B, C))
+  
+#Fixed
+```{r}
+tibble(alphabet = LETTERS,
+       numbers = 1:26) %>% 
+  filter(alphabet != c("A", "B", "C"))
+```
+
+##Error 10
+```{r}
+set.seed(999)
+
+scent_ratings <- tibble(
+  iD = rep(1:10, each = 5),
+  SCENT = rep(c("New book", "Cut grass", "Rose oil", "Fresh linen", "Wet dog"), 10),
+  rating = sample(c(0:5, NA), 50, replace = TRUE),
+  PersonAge = rep(NA, 50)
+)
+```
+
+```{r}
+scent_ratings <- janitor::clean_names(scent_ratings)
+
+```
+```{r}
+scent_ratings %>% 
+  drop_na(rating) %>% 
+  group_by(scent) %>% 
+  summarise(mean_rating = mean(rating))
+```
+

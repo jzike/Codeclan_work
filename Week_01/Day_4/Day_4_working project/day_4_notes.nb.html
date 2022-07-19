@@ -1765,9 +1765,26 @@ pre code {
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
 <pre class="r"><code>library(tidyverse)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdkYnBseXInOlxuICBtZXRob2QgICAgICAgICBmcm9tXG4gIHByaW50LnRibF9sYXp5ICAgICBcbiAgcHJpbnQudGJsX3NxbCAgICAgIFxuLS0gQXR0YWNoaW5nIHBhY2thZ2VzIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIHRpZHl2ZXJzZSAxLjMuMSAtLVxudiBnZ3Bsb3QyIDMuMy41ICAgICB2IHB1cnJyICAgMC4zLjRcbnYgdGliYmxlICAzLjEuNiAgICAgdiBkcGx5ciAgIDEuMC43XG52IHRpZHlyICAgMS4xLjQgICAgIHYgc3RyaW5nciAxLjQuMFxudiByZWFkciAgIDIuMS4xICAgICB2IGZvcmNhdHMgMC41LjFcbi0tIENvbmZsaWN0cyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSB0aWR5dmVyc2VfY29uZmxpY3RzKCkgLS1cbnggZHBseXI6OmZpbHRlcigpIG1hc2tzIHN0YXRzOjpmaWx0ZXIoKVxueCBkcGx5cjo6bGFnKCkgICAgbWFza3Mgc3RhdHM6OmxhZygpXG4ifQ== -->
+<pre><code>Registered S3 methods overwritten by &#39;dbplyr&#39;:
+  method         from
+  print.tbl_lazy     
+  print.tbl_sql      
+-- Attaching packages ----------------------------------------------------------------------------- tidyverse 1.3.1 --
+v ggplot2 3.3.5     v purrr   0.3.4
+v tibble  3.1.6     v dplyr   1.0.7
+v tidyr   1.1.4     v stringr 1.4.0
+v readr   2.1.1     v forcats 0.5.1
+-- Conflicts -------------------------------------------------------------------------------- tidyverse_conflicts() --
+x dplyr::filter() masks stats::filter()
+x dplyr::lag()    masks stats::lag()</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Part 1 - Coding best practices</p>
+<!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW1vdW50X3NwZW50IDwtIGMoOS4xLCA4LjU1LCAxNC4zMiwgMTQuMTcsIDE0LjM0LCA3Ljk3LCA5Ljc5LCAxMS40NywgMTIuNDQpXG5jYXRlZ29yeSA8LSBjKFxuICBcImx1bmNoXCIsXG4gIFwiZGlubmVyXCIsXG4gIFwibHVuY2hcIixcbiAgXCJsdW5jaFwiLFxuICBcImNpbmVtYVwiLFxuICBcImRyaW5rc1wiLFxuICBcImx1bmNoXCIsXG4gIFwibHVuY2hcIixcbiAgXCJkaW5uZXJcIlxuKVxubXlfd2Vla19vZl9zcGVuZGluZyA8LSB0aWJibGUoXG4gIGFtb3VudF9zcGVudCAgICAgID0gYW1vdW50X3NwZW50LFxuICBzcGVuZGluZ19jYXRlZ29yeSA9IGNhdGVnb3J5XG4pXG5zdW1tYXJpc2UobXlfd2Vla19vZl9zcGVuZGluZywgc3VtKGFtb3VudF9zcGVudCkpXG5zdW1tYXJpc2UoXG4gIGZpbHRlcihcbiAgICBteV93ZWVrX29mX3NwZW5kaW5nLCBzcGVuZGluZ19jYXRlZ29yeSA9PSBcImx1bmNoXCJcbiAgKSxcbiAgc3VtKGFtb3VudF9zcGVudClcbilcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW1vdW50X3NwZW50IDwtIGMoOS4xLCA4LjU1LCAxNC4zMiwgMTQuMTcsIDE0LjM0LCA3Ljk3LCA5Ljc5LCAxMS40NywgMTIuNDQpXG5jYXRlZ29yeSA8LSBjKFxuICBcImx1bmNoXCIsXG4gIFwiZGlubmVyXCIsXG4gIFwibHVuY2hcIixcbiAgXCJsdW5jaFwiLFxuICBcImNpbmVtYVwiLFxuICBcImRyaW5rc1wiLFxuICBcImx1bmNoXCIsXG4gIFwibHVuY2hcIixcbiAgXCJkaW5uZXJcIlxuKVxubXlfd2Vla19vZl9zcGVuZGluZyA8LSB0aWJibGUoXG4gIGFtb3VudF9zcGVudCAgICAgID0gYW1vdW50X3NwZW50LFxuICBzcGVuZGluZ19jYXRlZ29yeSA9IGNhdGVnb3J5XG4pXG5zdW1tYXJpc2UobXlfd2Vla19vZl9zcGVuZGluZywgc3VtKGFtb3VudF9zcGVudCkpXG5gYGAifQ== -->
 <pre class="r"><code>amount_spent &lt;- c(9.1, 8.55, 14.32, 14.17, 14.34, 7.97, 9.79, 11.47, 12.44)
 category &lt;- c(
   &quot;lunch&quot;,
@@ -1784,26 +1801,241 @@ my_week_of_spending &lt;- tibble(
   amount_spent      = amount_spent,
   spending_category = category
 )
-summarise(my_week_of_spending, sum(amount_spent))
-summarise(
+summarise(my_week_of_spending, sum(amount_spent))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6MSwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIHggMSJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUJsMVB3V3JETUF4VjNDU2xnWFVkL1luMjBNQXlkaTlzSDFCNnlrN0ZUYncxTkpGRDdOQWRkOTBuYkIvYlZnNDJCQnRrU1ErOUo3MzllLzZTNUFrQVRDQU1HRXdpS2lGKzJ6MW5yeGxBeUtnTElJU1p5ZDgwdFJ3QWdMbkoyNC9mUDNyLzNtQ0V2QkdLaXNVSWZGSjlzK0tON0ZFZlZDdFFyejNXckpPWDFERWZLTmdQZlRkNnZueFJjK1hMSnlYWFBQM3NpRS9kMWFOTVphc3JpVVJpeGtEa2tZUE9BeDU3TkplVW0rTFU0M21UbVFYV09OanJBaHVqMnF4a055c1ZXYWxZNEZlRnd0MWU4Nk9vYlRNbng0UGh0TzBxMU00Sm9TclZVbk0zbHhTeWRzamdEYTUzRVZabmNyZ0JBQUE9In0= -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["sum(amount_spent)"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"102.15"}],"options":{"columns":{"min":{},"max":[10],"total":[1]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyaXNlKFxuICBmaWx0ZXIoXG4gICAgbXlfd2Vla19vZl9zcGVuZGluZywgc3BlbmRpbmdfY2F0ZWdvcnkgPT0gXCJsdW5jaFwiXG4gICksXG4gIHN1bShhbW91bnRfc3BlbnQpXG4pXG5gYGAifQ== -->
+<pre class="r"><code>summarise(
   filter(
     my_week_of_spending, spending_category == &quot;lunch&quot;
   ),
   sum(amount_spent)
 )</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MSwibmNvbCI6MSwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIxIHggMSJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUJsMVB3V3JETUF4VjNLUWxnWFVkKzRuMmtNQXlkaDkwMTBIWnFiZmlKVzRiNXNnaGRtaVAvY0R0bDlySndZWmlneXpwb2ZlazkvV3hmYzIyR1FCTUlJNFlUQklxWWJyZXZKUnZKVURNcUlzZ2h0VG1NMDA5andEQTNPYjNUL2xMN3k4WVRKQzNRbE94dUFPZjlOQXVlYXNHTkR2ZENUU3JnSlgyNmxSNDVnTUZ1OUIzb3hmS1Y1THJVRDZydWVIRnZpYytkZGVBTWxPZGFSUVNpVmtEU1VDTytnQjRITkJlVXVmVmNjQ2Z2TFFMbkhGdzEwVXU3bXE3a3QyY1ZPS2twZ0lQRFFwL3UrVGZRcnBtVG81SHcwWFhOMmk4RTBKMVlaVGhmaTZybFBUSTZBMnUvMGorNlJlNEFRQUEifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["sum(amount_spent)"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"58.85"}],"options":{"columns":{"min":{},"max":[10],"total":[1]},"rows":{"min":[10],"max":[10],"total":[1]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>AmountSpent -&gt; c(9.1, 8.55, 14.32, 14.17, 14.34, 7.97, 9.79,
-11.47, 12.44) Category &lt;- c( “Lunch”, “Dinner”, “Lunch”, “Lunch”,
-“Cinema”, “Drinks”, “Lunch”, “Lunch”, “Dinner”) my_week_of_spending
-&lt;- tibble( AmountSpent = AmountSpent, SpendingCategory = Category)
-str(my.week.of.spending) View(my.week.of.spending) my.week.of.spending
-summarise(my.week.of.spending,sum(AmountSpent))
-summarise(filter(my.week.of.spending,SpendingCategory==‘Lunch’),sum(AmountSpent))</p>
+<p>##Part 2 - Errors</p>
+<p>#checking type of data</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2xhc3MobXRjYXJzKVxuYGBgIn0= -->
+<pre class="r"><code>class(mtcars)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiZGF0YS5mcmFtZVwiXG4ifQ== -->
+<pre><code>[1] &quot;data.frame&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>#Conflicting functions Such as using #library(dplyr) and
+#library(MASS) at the same time</p>
+<p>#B/c both MASS and dplyr have a function called select, you have to
+specify which you want to run since one is masking the other</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXRjYXJzICU+JSBcbiAgZHBseXI6OnNlbGVjdChtcGcpXG5gYGAifQ== -->
+<pre class="r"><code>mtcars %&gt;% 
+  dplyr::select(mpg)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6MzIsIm5jb2wiOjEsInN1bW1hcnkiOnsiRGVzY3JpcHRpb24iOlsiZGYgWzMyIHggMV0iXX19LCJyZGYiOiJINHNJQUFBQUFBQUFCbVdVM1c3VE1CU0EzVzdkVDlsS1lWZmMrWUlyUkxza1RVY0hFZ3FrcXdicXBHcERvK0xPUzd6V3d2V3BIS2RqWFBFYTR6VjREWGdhN2dkT1lyY2xIQ215ejNlT3o0OXprdlArdUZNZjF4RkNHMml6VWtVYk5iMUZXK0hJOWJvZVFwdFZyVlhRSnRyTjFpL2E2eUFIQ0RYMGc0TXV5bVc1SHYzTTVGZlF2YzRsOEg1ME1nbThKM2RhdmdmUDc0cTFaK3pXdjFOSTRCcmRNWFozV09odG96ODFkcnUyRERjQmd0ZFcvMTNvM1c5RlhZZW1QaHZubWFuRDVuMWw4cncwZmpiT29mVXpmYlJ0djRXOWRFRTFRV1kwMFp2bUd0eVl6U2NsdjEwSk4rMTFYMndOWitSclRQRDUyRGRnZndud1J6SXhzTjRuS2trRmZ1RTZoalJPUVFxcXNJLzdraTJvb1k4TXZaaURWT1FLVW1VTTI1ZUVNeUxVTWw2YUtDcHg1OGhaMWtGbGhEM2Y2UnV3VTRDTzg2L2VLeDNvT2FHTm1RTy82MXljL0VlR2hqeFlFWHZzY1VoaXhqbUo4SUJUcW00QVltTTVHRElSQVJjNEJLR1lvRUlSYnZzTXAvSTI0YnFEZDdNNWxXeHAyQmt3b3JEcjlXekNVeEQ2TmtPMllKRzl1UTl3QzBvemtLRHoybXRmbzhMQ1poL2lDY1hobEhCT3hZUktHL1hOV1lqZmt3WGxUTmhlUXpJakV2Q25aZXJtS0NzNzY0dEplc1drYldzM0wzSHN0bzV0NmhISUpKcFNmT3o2TGMvQXZTR29OTUVucVlTNUxhY3hBQm5qa1g2TlZCSnM3M1J2UUtVa2t1RStFN0Fhb2tUN0tJYmZnclRINjVmQUY0QmQzenNwVDNIRVNWS2U0bnBNRkdsZlN6MjBXcnN2SGRtR3VXSWc5S0ZxOW4rb2xRNVhaQWs4VEVVMi9uRXJtcWJpYzh2UEVwai9TdmJzbXhXdjdTdEZ5dW9mRTZwbVFtM3BWNkhId2RiT3lSVzFyNytoUDdQOEsydlBKVnROdTZaSlc4RnFmdXA2cml6SmUwUDNmd0hlcEIwOUZ3VUFBQT09In0= -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["mpg"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"21.0","_rn_":"Mazda RX4"},{"1":"21.0","_rn_":"Mazda RX4 Wag"},{"1":"22.8","_rn_":"Datsun 710"},{"1":"21.4","_rn_":"Hornet 4 Drive"},{"1":"18.7","_rn_":"Hornet Sportabout"},{"1":"18.1","_rn_":"Valiant"},{"1":"14.3","_rn_":"Duster 360"},{"1":"24.4","_rn_":"Merc 240D"},{"1":"22.8","_rn_":"Merc 230"},{"1":"19.2","_rn_":"Merc 280"},{"1":"17.8","_rn_":"Merc 280C"},{"1":"16.4","_rn_":"Merc 450SE"},{"1":"17.3","_rn_":"Merc 450SL"},{"1":"15.2","_rn_":"Merc 450SLC"},{"1":"10.4","_rn_":"Cadillac Fleetwood"},{"1":"10.4","_rn_":"Lincoln Continental"},{"1":"14.7","_rn_":"Chrysler Imperial"},{"1":"32.4","_rn_":"Fiat 128"},{"1":"30.4","_rn_":"Honda Civic"},{"1":"33.9","_rn_":"Toyota Corolla"},{"1":"21.5","_rn_":"Toyota Corona"},{"1":"15.5","_rn_":"Dodge Challenger"},{"1":"15.2","_rn_":"AMC Javelin"},{"1":"13.3","_rn_":"Camaro Z28"},{"1":"19.2","_rn_":"Pontiac Firebird"},{"1":"27.3","_rn_":"Fiat X1-9"},{"1":"26.0","_rn_":"Porsche 914-2"},{"1":"30.4","_rn_":"Lotus Europa"},{"1":"15.8","_rn_":"Ford Pantera L"},{"1":"19.7","_rn_":"Ferrari Dino"},{"1":"15.0","_rn_":"Maserati Bora"},{"1":"21.4","_rn_":"Volvo 142E"}],"options":{"columns":{"min":{},"max":[10],"total":[1]},"rows":{"min":[10],"max":[10],"total":[32]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Show conflicts</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29uZmxpY3RzKClcbmBgYCJ9 -->
+<pre class="r"><code>conflicts()</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiIFsxXSBcIiU+JVwiICAgICAgICAgICBcIiU+JVwiICAgICAgICAgICBcIiU+JVwiICAgICAgICAgICBcIiU+JVwiICAgICAgICAgICBcImFzX3RpYmJsZVwiICAgICBcImNvbnRhaW5zXCIgICAgICBcImVuZHNfd2l0aFwiICAgIFxuIFs4XSBcImV2ZXJ5dGhpbmdcIiAgICBcImxhc3RfY29sXCIgICAgICBcIm1hdGNoZXNcIiAgICAgICBcIm51bV9yYW5nZVwiICAgICBcIm9uZV9vZlwiICAgICAgICBcInN0YXJ0c193aXRoXCIgICBcInRpYmJsZVwiICAgICAgIFxuWzE1XSBcInRyaWJibGVcIiAgICAgICBcIiU+JVwiICAgICAgICAgICBcImFkZF9yb3dcIiAgICAgICBcImFzX2RhdGFfZnJhbWVcIiBcImFzX3RpYmJsZVwiICAgICBcImRhdGFfZnJhbWVcIiAgICBcImRhdGFfZnJhbWVfXCIgIFxuWzIyXSBcImZyYW1lX2RhdGFcIiAgICBcImdsaW1wc2VcIiAgICAgICBcImxzdFwiICAgICAgICAgICBcImxzdF9cIiAgICAgICAgICBcInRibF9zdW1cIiAgICAgICBcInRpYmJsZVwiICAgICAgICBcInRyaWJibGVcIiAgICAgIFxuWzI5XSBcInRydW5jX21hdFwiICAgICBcInR5cGVfc3VtXCIgICAgICBcImFzX2xhYmVsXCIgICAgICBcImVuZXhwclwiICAgICAgICBcImVuZXhwcnNcIiAgICAgICBcImVucXVvXCIgICAgICAgICBcImVucXVvc1wiICAgICAgIFxuWzM2XSBcImVuc3ltXCIgICAgICAgICBcImVuc3ltc1wiICAgICAgICBcImV4cHJcIiAgICAgICAgICBcInF1b1wiICAgICAgICAgICBcInF1b19uYW1lXCIgICAgICBcInF1b3NcIiAgICAgICAgICBcInN5bVwiICAgICAgICAgIFxuWzQzXSBcInN5bXNcIiAgICAgICAgICBcInZhcnNcIiAgICAgICAgICBcImZpbHRlclwiICAgICAgICBcImxhZ1wiICAgICAgICAgICBcImJvZHk8LVwiICAgICAgICBcImludGVyc2VjdFwiICAgICBcImtyb25lY2tlclwiICAgIFxuWzUwXSBcInBsb3RcIiAgICAgICAgICBcIlBvc2l0aW9uXCIgICAgICBcInNldGRpZmZcIiAgICAgICBcInNldGVxdWFsXCIgICAgICBcInVuaW9uXCIgICAgICAgIFxuIn0= -->
+<pre><code> [1] &quot;%&gt;%&quot;           &quot;%&gt;%&quot;           &quot;%&gt;%&quot;           &quot;%&gt;%&quot;           &quot;as_tibble&quot;     &quot;contains&quot;      &quot;ends_with&quot;    
+ [8] &quot;everything&quot;    &quot;last_col&quot;      &quot;matches&quot;       &quot;num_range&quot;     &quot;one_of&quot;        &quot;starts_with&quot;   &quot;tibble&quot;       
+[15] &quot;tribble&quot;       &quot;%&gt;%&quot;           &quot;add_row&quot;       &quot;as_data_frame&quot; &quot;as_tibble&quot;     &quot;data_frame&quot;    &quot;data_frame_&quot;  
+[22] &quot;frame_data&quot;    &quot;glimpse&quot;       &quot;lst&quot;           &quot;lst_&quot;          &quot;tbl_sum&quot;       &quot;tibble&quot;        &quot;tribble&quot;      
+[29] &quot;trunc_mat&quot;     &quot;type_sum&quot;      &quot;as_label&quot;      &quot;enexpr&quot;        &quot;enexprs&quot;       &quot;enquo&quot;         &quot;enquos&quot;       
+[36] &quot;ensym&quot;         &quot;ensyms&quot;        &quot;expr&quot;          &quot;quo&quot;           &quot;quo_name&quot;      &quot;quos&quot;          &quot;sym&quot;          
+[43] &quot;syms&quot;          &quot;vars&quot;          &quot;filter&quot;        &quot;lag&quot;           &quot;body&lt;-&quot;        &quot;intersect&quot;     &quot;kronecker&quot;    
+[50] &quot;plot&quot;          &quot;Position&quot;      &quot;setdiff&quot;       &quot;setequal&quot;      &quot;union&quot;        </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Errors lab</p>
+<p>##Error 1 #Original error some_letters &lt;- (“E”, “R”, “R”, “O”,
+“R)</p>
+<p>#fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc29tZV9sZXR0ZXJzIDwtIGMoXCJFXCIsIFwiUlwiLCBcIlJcIiwgXCJPXCIsIFwiUlwiKVxuc29tZV9sZXR0ZXJzXG5gYGAifQ== -->
+<pre class="r"><code>some_letters &lt;- c(&quot;E&quot;, &quot;R&quot;, &quot;R&quot;, &quot;O&quot;, &quot;R&quot;)
+some_letters</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 2 #Original error message &lt;- c(“does”, “this” “work”,
+“?”)</p>
+<p>toupper(messege)</p>
+<p>#fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWVzc2FnZSA8LSBjKFwiZG9lc1wiLCBcInRoaXNcIiwgXCJ3b3JrXCIsIFwiP1wiKVxuXG50b3VwcGVyKG1lc3NhZ2UpXG5gYGAifQ== -->
+<pre class="r"><code>message &lt;- c(&quot;does&quot;, &quot;this&quot;, &quot;work&quot;, &quot;?&quot;)
+
+toupper(message)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 3 #Original error mtcars %&gt;% select(mpg, cyl, disp)
+%&gt;&gt;% filter(mpg &lt; 20)</p>
+<p>#Fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXRjYXJzICU+JSBcbiAgc2VsZWN0KG1wZywgY3lsLCBkaXNwKSAlPiVcbiAgZmlsdGVyKG1wZyA8IDIwKVxuYGBgIn0= -->
+<pre class="r"><code>mtcars %&gt;% 
+  select(mpg, cyl, disp) %&gt;%
+  filter(mpg &lt; 20)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 4 #Original error iris %&gt;% select(Sepal.Width, Species)
+%&gt;% arrange(Sepal.Length)</p>
+<p>#Fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaXJpcyAlPiUgXG4gIHNlbGVjdChTZXBhbC5MZW5ndGgsIFNlcGFsLldpZHRoLCBTcGVjaWVzKSAlPiUgXG4gIGFycmFuZ2UoU2VwYWwuTGVuZ3RoKVxuYGBgIn0= -->
+<pre class="r"><code>iris %&gt;% 
+  select(Sepal.Length, Sepal.Width, Species) %&gt;% 
+  arrange(Sepal.Length)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 5 #Original error ToothGrowth %&gt;% summarise(avg_len_vc =
+mean(len)) %&gt;% filter(supp == “VC”)</p>
+<p>#Fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuVG9vdGhHcm93dGggJT4lXG4gIGZpbHRlcihzdXBwID09IFwiVkNcIikgJT4lIFxuICBzdW1tYXJpc2UoYXZnX2xlbl92YyA9IG1lYW4obGVuKSlcbmBgYCJ9 -->
+<pre class="r"><code>ToothGrowth %&gt;%
+  filter(supp == &quot;VC&quot;) %&gt;% 
+  summarise(avg_len_vc = mean(len))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 6 #Original error animals &lt;- c(“cat”, dog, “rabbit”,
+“horse”) sample(animals, 10)</p>
+<p>#Fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW5pbWFscyA8LSBjKFwiY2F0XCIsIFwiZG9nXCIsIFwicmFiYml0XCIsIFwiaG9yc2VcIilcbnNhbXBsZShhbmltYWxzLCAxMCwgcmVwbGFjZSA9IFRSVUUpXG5gYGAifQ== -->
+<pre class="r"><code>animals &lt;- c(&quot;cat&quot;, &quot;dog&quot;, &quot;rabbit&quot;, &quot;horse&quot;)
+sample(animals, 10, replace = TRUE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 7 #Original error dog_names &lt;- c(“Lucy”, “Molly”,
+“Charlie”, “Luna”, “Bella”, “Cooper”)</p>
+<p>cat_names &lt; c(“Luna”, “Lily”, “Lucy”, “Charlie”, “Max”, “Oliver”)
+Intersect(dog_names)</p>
+<p>#Fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZG9nX25hbWVzIDwtIGMoXCJMdWN5XCIsIFwiTW9sbHlcIiwgXCJDaGFybGllXCIsIFwiTHVuYVwiLCBcIkJlbGxhXCIsIFwiQ29vcGVyXCIpXG5cbmNhdF9uYW1lcyA8LSBjKFwiTHVuYVwiLCBcIkxpbHlcIiwgXCJMdWN5XCIsIFwiQ2hhcmxpZVwiLCBcIk1heFwiLCBcIk9saXZlclwiKVxuXG5pbnRlcnNlY3QoZG9nX25hbWVzLCBjYXRfbmFtZXMpXG5gYGAifQ== -->
+<pre class="r"><code>dog_names &lt;- c(&quot;Lucy&quot;, &quot;Molly&quot;, &quot;Charlie&quot;, &quot;Luna&quot;, &quot;Bella&quot;, &quot;Cooper&quot;)
+
+cat_names &lt;- c(&quot;Luna&quot;, &quot;Lily&quot;, &quot;Lucy&quot;, &quot;Charlie&quot;, &quot;Max&quot;, &quot;Oliver&quot;)
+
+intersect(dog_names, cat_names)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 8 #Original error chickwts %&gt;% filter(weight =&lt; 150)
+%&gt;% mutate(weight_kg == weight * 0.001)</p>
+<p>#Fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2hpY2t3dHMgJT4lIFxuICBmaWx0ZXIod2VpZ2h0IDw9IDE1MCkgJT4lIFxuICBtdXRhdGUod2VpZ2h0X2tnID0gd2VpZ2h0ICogMC4wMDEpXG5gYGAifQ== -->
+<pre class="r"><code>chickwts %&gt;% 
+  filter(weight &lt;= 150) %&gt;% 
+  mutate(weight_kg = weight * 0.001)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 9 #Original error tibble(alphabet = LETTERS(), numbers =
+1:25) %&gt;% filter(letter != c(A, B, C))</p>
+<p>#Fixed</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlKGFscGhhYmV0ID0gTEVUVEVSUyxcbiAgICAgICBudW1iZXJzID0gMToyNikgJT4lIFxuICBmaWx0ZXIoYWxwaGFiZXQgIT0gYyhcIkFcIiwgXCJCXCIsIFwiQ1wiKSlcbmBgYCJ9 -->
+<pre class="r"><code>tibble(alphabet = LETTERS,
+       numbers = 1:26) %&gt;% 
+  filter(alphabet != c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiV2FybmluZyBpbiBhbHBoYWJldCAhPSBjKFwiQVwiLCBcIkJcIiwgXCJDXCIpIDpcbiAgbG9uZ2VyIG9iamVjdCBsZW5ndGggaXMgbm90IGEgbXVsdGlwbGUgb2Ygc2hvcnRlciBvYmplY3QgbGVuZ3RoXG4ifQ== -->
+<pre><code>Warning in alphabet != c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;) :
+  longer object length is not a multiple of shorter object length</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MjMsIm5jb2wiOjIsInN1bW1hcnkiOnsiQSB0aWJibGUiOlsiMjMgeCAyIl19fSwicmRmIjoiSDRzSUFBQUFBQUFBQmwyUTYwN0NRQkNGdDh1OUNxS29xTzlBRXpBOGdYaS9JZDdRZndXcUVNdVd0Q1g2MDlmMUphaG5ZVTlDMnVTMDMweG5abmRPcjlNL3R2dTJFQ0lqc3BZVW1SeFE1RSs2elZhN0pVUldJckpFVnBUMDl3ZFZOWUJPVnFFNmYzUUlwNFF6d2puaGduQkp1Q0pjRTI0SXQ0UTd3ajJoUzNnZzlBaVBoQ2ZDTStHRjhFcm9FOTRJNzNpVmwydGhjVWhia1ljS1VCSFNSZHFwRFdqVDFGYWdMV1BITnJRRGFZdDJvVDFvMzh3N2dBNmhvNVNuT2VWT3ZjZ01rQ1paZFAzWjJCMTRzWWtMYWo0ZGVHR1U2aTJGd2JmRGZuMForWXRYa2lSLzZVT0d2aHZ4RUNidGtSdTd6a2VJZmtTTFZFc2htTVdUUUtGSjFvd1Y2ODFXbUVwVTUwcmZaTlFZanVmcXE5RnVHcThzc1hyS2h1dHJMRmRueXNUTXlwbFplVTk5VHBUSHkvdHd3amRCQlNzdk4zWm00VVRSSHh2WnlJbUQyR1dkUFF4OFpwYkxpY1UvYVRFQTFPb0NBQUE9In0= -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["alphabet"],"name":[1],"type":["chr"],"align":["left"]},{"label":["numbers"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"D","2":"4"},{"1":"E","2":"5"},{"1":"F","2":"6"},{"1":"G","2":"7"},{"1":"H","2":"8"},{"1":"I","2":"9"},{"1":"J","2":"10"},{"1":"K","2":"11"},{"1":"L","2":"12"},{"1":"M","2":"13"},{"1":"N","2":"14"},{"1":"O","2":"15"},{"1":"P","2":"16"},{"1":"Q","2":"17"},{"1":"R","2":"18"},{"1":"S","2":"19"},{"1":"T","2":"20"},{"1":"U","2":"21"},{"1":"V","2":"22"},{"1":"W","2":"23"},{"1":"X","2":"24"},{"1":"Y","2":"25"},{"1":"Z","2":"26"}],"options":{"columns":{"min":{},"max":[10],"total":[2]},"rows":{"min":[10],"max":[10],"total":[23]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>##Error 10</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2V0LnNlZWQoOTk5KVxuXG5zY2VudF9yYXRpbmdzIDwtIHRpYmJsZShcbiAgaUQgPSByZXAoMToxMCwgZWFjaCA9IDUpLFxuICBTQ0VOVCA9IHJlcChjKFwiTmV3IGJvb2tcIiwgXCJDdXQgZ3Jhc3NcIiwgXCJSb3NlIG9pbFwiLCBcIkZyZXNoIGxpbmVuXCIsIFwiV2V0IGRvZ1wiKSwgMTApLFxuICByYXRpbmcgPSBzYW1wbGUoYygwOjUsIE5BKSwgNTAsIHJlcGxhY2UgPSBUUlVFKSxcbiAgUGVyc29uQWdlID0gcmVwKE5BLCA1MClcbilcbmBgYCJ9 -->
+<pre class="r"><code>set.seed(999)
+
+scent_ratings &lt;- tibble(
+  iD = rep(1:10, each = 5),
+  SCENT = rep(c(&quot;New book&quot;, &quot;Cut grass&quot;, &quot;Rose oil&quot;, &quot;Fresh linen&quot;, &quot;Wet dog&quot;), 10),
+  rating = sample(c(0:5, NA), 50, replace = TRUE),
+  PersonAge = rep(NA, 50)
+)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-chunk-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2NlbnRfcmF0aW5ncyAlPiUgXG4gIGRyb3BfbmEocmF0aW5nKSAlPiUgXG4gIGdyb3VwX2J5KHNjZW50KSAlPiUgXG4gIHN1bW1hcmlzZShtZWFuX3JhdGluZyA9IG1lYW4ocmF0aW5nKSlcbmBgYCJ9 -->
+<pre class="r"><code>scent_ratings %&gt;% 
+  drop_na(rating) %&gt;% 
+  group_by(scent) %&gt;% 
+  summarise(mean_rating = mean(rating))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6NSwibmNvbCI6Miwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyI1IHggMiJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUJsMVJUVS9DTUJqdXlnWnVCa0xDMWNNT1hsa1V3OWtsR0JNdnhuQ1JteWxiSFF1anhiWUxIdjBOL2lsL2xJYjVkbXVOdE9uSDh6enQrOW5sM2VvbVdrVUlvUjd5UFl4NkFVRFVYenhkeitZemhId016RU0rQ3ZYNURxOG1BTFE0aGhXWWkzQlJxN2dRUkVvam5OOExLamR4VlRMS2pIVDJTQS94bXZPdDVVc3VhY3pMeXZEQk0xVnh6Z3VBSSswNnhRK1huekJUSDdYajl1ZnQ2d0ptNnAxeUo4ZUFrUjJWSmo5c1JabFJwbXh1TzByWWl5Q3FaSVZqSEFwK1NLeURvWGJ3QVZ2VE5OOXVsS3pTeFhaUnJCamxSSkhrVllBOXNLTmpNdUI3VlhJR1JualN0dTdVMkJPT01LNlp6aVNmWnB1YWJhZnpLeDJodmUvRzBPRGdIOFpkVE53NC85T25ySUN2c01sWFpFMXQyMGRRY2x0eHNoZmxYNDhpVUdXaXVDTDJYWlR4eWlwdGNlajRDd3M4bnVFN0FnQUEifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["scent"],"name":[1],"type":["chr"],"align":["left"]},{"label":["mean_rating"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"Cut grass","2":"2.285714"},{"1":"Fresh linen","2":"2.500000"},{"1":"New book","2":"1.777778"},{"1":"Rose oil","2":"2.125000"},{"1":"Wet dog","2":"1.777778"}],"options":{"columns":{"min":{},"max":[10],"total":[2]},"rows":{"min":[10],"max":[10],"total":[5]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkodGlkeXZlcnNlKQ0KYGBgDQpgYGB7cn0NCmFtb3VudF9zcGVudCA8LSBjKDkuMSwgOC41NSwgMTQuMzIsIDE0LjE3LCAxNC4zNCwgNy45NywgOS43OSwgMTEuNDcsIDEyLjQ0KQ0KY2F0ZWdvcnkgPC0gYygNCiAgImx1bmNoIiwNCiAgImRpbm5lciIsDQogICJsdW5jaCIsDQogICJsdW5jaCIsDQogICJjaW5lbWEiLA0KICAiZHJpbmtzIiwNCiAgImx1bmNoIiwNCiAgImx1bmNoIiwNCiAgImRpbm5lciINCikNCm15X3dlZWtfb2Zfc3BlbmRpbmcgPC0gdGliYmxlKA0KICBhbW91bnRfc3BlbnQgICAgICA9IGFtb3VudF9zcGVudCwNCiAgc3BlbmRpbmdfY2F0ZWdvcnkgPSBjYXRlZ29yeQ0KKQ0Kc3VtbWFyaXNlKG15X3dlZWtfb2Zfc3BlbmRpbmcsIHN1bShhbW91bnRfc3BlbnQpKQ0Kc3VtbWFyaXNlKA0KICBmaWx0ZXIoDQogICAgbXlfd2Vla19vZl9zcGVuZGluZywgc3BlbmRpbmdfY2F0ZWdvcnkgPT0gImx1bmNoIg0KICApLA0KICBzdW0oYW1vdW50X3NwZW50KQ0KKQ0KYGBgDQoNCkFtb3VudFNwZW50IC0+IGMoOS4xLCA4LjU1LCAxNC4zMiwgMTQuMTcsIDE0LjM0LCA3Ljk3LCA5Ljc5LCAxMS40NywgMTIuNDQpDQpDYXRlZ29yeSA8LSBjKA0KIkx1bmNoIiwNCiJEaW5uZXIiLA0KIkx1bmNoIiwNCiJMdW5jaCIsDQoiQ2luZW1hIiwNCiJEcmlua3MiLA0KIkx1bmNoIiwNCiJMdW5jaCIsDQoiRGlubmVyIikNCm15X3dlZWtfb2Zfc3BlbmRpbmcgPC0gdGliYmxlKA0KQW1vdW50U3BlbnQgPSBBbW91bnRTcGVudCwgU3BlbmRpbmdDYXRlZ29yeSA9IENhdGVnb3J5KQ0Kc3RyKG15LndlZWsub2Yuc3BlbmRpbmcpDQpWaWV3KG15LndlZWsub2Yuc3BlbmRpbmcpDQpteS53ZWVrLm9mLnNwZW5kaW5nDQpzdW1tYXJpc2UobXkud2Vlay5vZi5zcGVuZGluZyxzdW0oQW1vdW50U3BlbnQpKQ0Kc3VtbWFyaXNlKGZpbHRlcihteS53ZWVrLm9mLnNwZW5kaW5nLFNwZW5kaW5nQ2F0ZWdvcnk9PSdMdW5jaCcpLHN1bShBbW91bnRTcGVudCkp</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkodGlkeXZlcnNlKQ0KYGBgDQojI1BhcnQgMSAtIENvZGluZyBiZXN0IHByYWN0aWNlcw0KYGBge3J9DQphbW91bnRfc3BlbnQgPC0gYyg5LjEsIDguNTUsIDE0LjMyLCAxNC4xNywgMTQuMzQsIDcuOTcsIDkuNzksIDExLjQ3LCAxMi40NCkNCmNhdGVnb3J5IDwtIGMoDQogICJsdW5jaCIsDQogICJkaW5uZXIiLA0KICAibHVuY2giLA0KICAibHVuY2giLA0KICAiY2luZW1hIiwNCiAgImRyaW5rcyIsDQogICJsdW5jaCIsDQogICJsdW5jaCIsDQogICJkaW5uZXIiDQopDQpteV93ZWVrX29mX3NwZW5kaW5nIDwtIHRpYmJsZSgNCiAgYW1vdW50X3NwZW50ICAgICAgPSBhbW91bnRfc3BlbnQsDQogIHNwZW5kaW5nX2NhdGVnb3J5ID0gY2F0ZWdvcnkNCikNCnN1bW1hcmlzZShteV93ZWVrX29mX3NwZW5kaW5nLCBzdW0oYW1vdW50X3NwZW50KSkNCnN1bW1hcmlzZSgNCiAgZmlsdGVyKA0KICAgIG15X3dlZWtfb2Zfc3BlbmRpbmcsIHNwZW5kaW5nX2NhdGVnb3J5ID09ICJsdW5jaCINCiAgKSwNCiAgc3VtKGFtb3VudF9zcGVudCkNCikNCmBgYA0KDQojI1BhcnQgMiAtIEVycm9ycw0KDQojY2hlY2tpbmcgdHlwZSBvZiBkYXRhDQpgYGB7cn0NCmNsYXNzKG10Y2FycykNCmBgYA0KI0NvbmZsaWN0aW5nIGZ1bmN0aW9ucw0KU3VjaCBhcyB1c2luZyAjbGlicmFyeShkcGx5cikgYW5kICNsaWJyYXJ5KE1BU1MpIGF0IHRoZSBzYW1lIHRpbWUNCg0KDQojQi9jIGJvdGggTUFTUyBhbmQgZHBseXIgaGF2ZSBhIGZ1bmN0aW9uIGNhbGxlZCBzZWxlY3QsIHlvdSBoYXZlIHRvIHNwZWNpZnkgDQp3aGljaCB5b3Ugd2FudCB0byBydW4gc2luY2Ugb25lIGlzIG1hc2tpbmcgdGhlIG90aGVyDQpgYGB7cn0NCm10Y2FycyAlPiUgDQogIGRwbHlyOjpzZWxlY3QobXBnKQ0KYGBgDQojI1Nob3cgY29uZmxpY3RzDQpgYGB7cn0NCmNvbmZsaWN0cygpDQpgYGANCg0KIyNFcnJvcnMgbGFiDQoNCiMjRXJyb3IgMQ0KI09yaWdpbmFsIGVycm9yDQpzb21lX2xldHRlcnMgPC0gKCJFIiwgIlIiLCAiUiIsICJPIiwgIlIpDQoNCiNmaXhlZA0KYGBge3J9DQpzb21lX2xldHRlcnMgPC0gYygiRSIsICJSIiwgIlIiLCAiTyIsICJSIikNCnNvbWVfbGV0dGVycw0KYGBgDQoNCiMjRXJyb3IgMg0KI09yaWdpbmFsIGVycm9yDQptZXNzYWdlIDwtIGMoImRvZXMiLCAidGhpcyIgIndvcmsiLCAiPyIpDQoNCnRvdXBwZXIobWVzc2VnZSkNCg0KI2ZpeGVkDQpgYGB7cn0NCm1lc3NhZ2UgPC0gYygiZG9lcyIsICJ0aGlzIiwgIndvcmsiLCAiPyIpDQoNCnRvdXBwZXIobWVzc2FnZSkNCmBgYA0KDQojI0Vycm9yIDMNCiNPcmlnaW5hbCBlcnJvcg0KbXRjYXJzICU+JSANCiAgc2VsZWN0KG1wZywgY3lsLCBkaXNwKSAlPj4lDQogIGZpbHRlcihtcGcgPCAyMCkNCg0KI0ZpeGVkDQpgYGB7cn0NCm10Y2FycyAlPiUgDQogIHNlbGVjdChtcGcsIGN5bCwgZGlzcCkgJT4lDQogIGZpbHRlcihtcGcgPCAyMCkNCmBgYA0KDQojI0Vycm9yIDQNCiNPcmlnaW5hbCBlcnJvcg0KaXJpcyAlPiUgDQogIHNlbGVjdChTZXBhbC5XaWR0aCwgU3BlY2llcykgJT4lIA0KICBhcnJhbmdlKFNlcGFsLkxlbmd0aCkNCiAgDQojRml4ZWQNCmBgYHtyfQ0KaXJpcyAlPiUgDQogIHNlbGVjdChTZXBhbC5MZW5ndGgsIFNlcGFsLldpZHRoLCBTcGVjaWVzKSAlPiUgDQogIGFycmFuZ2UoU2VwYWwuTGVuZ3RoKQ0KYGBgDQoNCiMjRXJyb3IgNQ0KI09yaWdpbmFsIGVycm9yDQpUb290aEdyb3d0aCAlPiUNCiAgc3VtbWFyaXNlKGF2Z19sZW5fdmMgPSBtZWFuKGxlbikpICU+JSANCiAgZmlsdGVyKHN1cHAgPT0gIlZDIikNCiAgDQojRml4ZWQNCmBgYHtyfQ0KVG9vdGhHcm93dGggJT4lDQogIGZpbHRlcihzdXBwID09ICJWQyIpICU+JSANCiAgc3VtbWFyaXNlKGF2Z19sZW5fdmMgPSBtZWFuKGxlbikpDQpgYGANCg0KDQoNCiMjRXJyb3IgNg0KI09yaWdpbmFsIGVycm9yDQphbmltYWxzIDwtIGMoImNhdCIsIGRvZywgInJhYmJpdCIsICJob3JzZSIpDQpzYW1wbGUoYW5pbWFscywgMTApDQoNCiNGaXhlZA0KYGBge3J9DQphbmltYWxzIDwtIGMoImNhdCIsICJkb2ciLCAicmFiYml0IiwgImhvcnNlIikNCnNhbXBsZShhbmltYWxzLCAxMCwgcmVwbGFjZSA9IFRSVUUpDQpgYGANCg0KIyNFcnJvciA3DQojT3JpZ2luYWwgZXJyb3INCmRvZ19uYW1lcyA8LSBjKCJMdWN5IiwgIk1vbGx5IiwgIkNoYXJsaWUiLCAiTHVuYSIsICJCZWxsYSIsICJDb29wZXIiKQ0KDQpjYXRfbmFtZXMgPCBjKCJMdW5hIiwgIkxpbHkiLCAiTHVjeSIsICJDaGFybGllIiwgIk1heCIsICJPbGl2ZXIiKQ0KSW50ZXJzZWN0KGRvZ19uYW1lcykNCg0KI0ZpeGVkDQpgYGB7cn0NCmRvZ19uYW1lcyA8LSBjKCJMdWN5IiwgIk1vbGx5IiwgIkNoYXJsaWUiLCAiTHVuYSIsICJCZWxsYSIsICJDb29wZXIiKQ0KDQpjYXRfbmFtZXMgPC0gYygiTHVuYSIsICJMaWx5IiwgIkx1Y3kiLCAiQ2hhcmxpZSIsICJNYXgiLCAiT2xpdmVyIikNCg0KaW50ZXJzZWN0KGRvZ19uYW1lcywgY2F0X25hbWVzKQ0KYGBgDQoNCiMjRXJyb3IgOCANCiNPcmlnaW5hbCBlcnJvcg0KY2hpY2t3dHMgJT4lIA0KICBmaWx0ZXIod2VpZ2h0ID08IDE1MCkgJT4lIA0KICBtdXRhdGUod2VpZ2h0X2tnID09IHdlaWdodCAqIDAuMDAxKQ0KICANCiNGaXhlZA0KYGBge3J9DQpjaGlja3d0cyAlPiUgDQogIGZpbHRlcih3ZWlnaHQgPD0gMTUwKSAlPiUgDQogIG11dGF0ZSh3ZWlnaHRfa2cgPSB3ZWlnaHQgKiAwLjAwMSkNCmBgYA0KDQojI0Vycm9yIDkNCiNPcmlnaW5hbCBlcnJvcg0KdGliYmxlKGFscGhhYmV0ID0gTEVUVEVSUygpLA0KICAgICAgIG51bWJlcnMgPSAxOjI1KSAlPiUgDQogIGZpbHRlcihsZXR0ZXIgIT0gYyhBLCBCLCBDKSkNCiAgDQojRml4ZWQNCmBgYHtyfQ0KdGliYmxlKGFscGhhYmV0ID0gTEVUVEVSUywNCiAgICAgICBudW1iZXJzID0gMToyNikgJT4lIA0KICBmaWx0ZXIoYWxwaGFiZXQgIT0gYygiQSIsICJCIiwgIkMiKSkNCmBgYA0KDQojI0Vycm9yIDEwDQpgYGB7cn0NCnNldC5zZWVkKDk5OSkNCg0Kc2NlbnRfcmF0aW5ncyA8LSB0aWJibGUoDQogIGlEID0gcmVwKDE6MTAsIGVhY2ggPSA1KSwNCiAgU0NFTlQgPSByZXAoYygiTmV3IGJvb2siLCAiQ3V0IGdyYXNzIiwgIlJvc2Ugb2lsIiwgIkZyZXNoIGxpbmVuIiwgIldldCBkb2ciKSwgMTApLA0KICByYXRpbmcgPSBzYW1wbGUoYygwOjUsIE5BKSwgNTAsIHJlcGxhY2UgPSBUUlVFKSwNCiAgUGVyc29uQWdlID0gcmVwKE5BLCA1MCkNCikNCmBgYA0KDQpgYGB7cn0NCnNjZW50X3JhdGluZ3MgPC0gamFuaXRvcjo6Y2xlYW5fbmFtZXMoc2NlbnRfcmF0aW5ncykNCg0KYGBgDQpgYGB7cn0NCnNjZW50X3JhdGluZ3MgJT4lIA0KICBkcm9wX25hKHJhdGluZykgJT4lIA0KICBncm91cF9ieShzY2VudCkgJT4lIA0KICBzdW1tYXJpc2UobWVhbl9yYXRpbmcgPSBtZWFuKHJhdGluZykpDQpgYGANCg0K</div>
 
 
 
