@@ -1,0 +1,464 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Libraries
+```{r}
+library(tidyverse)
+```
+
+
+# Lesson 1 - Strings
+
+```{r}
+single <- 'this is a single string'
+double <- "this is a double string"
+```
+
+```{r}
+single
+double
+```
+
+
+```{r}
+employees <- tibble(
+  first_name = c("Sally", "steven", "Mary", "John"),
+  last_name = c("Smith", "hasTings", "Milne", "Davidson"),
+  postcode = c("EH10 6GH", "EH3 7HL", "G1 7FR", NA), 
+  location = c(" ", "Edinburgh", "", "Stirling")
+)
+
+employees
+```
+
+```{r}
+employees %>% 
+  group_by(location) %>% 
+  summarise(n())
+```
+
+```{r}
+mary_location <- employees %>% 
+  filter(first_name == "Mary") %>% 
+  select(location) %>% 
+  pull()
+
+sally_location <- employees %>% 
+  filter(first_name == "Sally") %>% 
+  select(location) %>% 
+  pull()
+```
+
+```{r}
+mary_location == sally_location
+```
+```{r}
+employees %>% 
+  summarise(nchar(location))
+```
+
+```{r}
+str_c("This", "is", "some", "text", sep = " ")
+```
+
+```{r}
+employees %>% 
+  mutate(full_name = str_c(first_name, last_name, sep = " "),
+         .after = last_name)
+```
+
+```{r}
+employees %>% 
+  mutate(full_name = paste(first_name, postcode, sep = " "),
+         .after = last_name)
+```
+
+The paste function in base R will change NAs into a string when joining while the str_c function won't join an NA to a string.
+
+```{r}
+pangram <- "The quick brown fox jumps over the lazy dog"
+```
+
+```{r}
+pangram %>% 
+  str_to_upper()
+```
+
+```{r}
+pangram %>% 
+  str_to_lower()
+```
+
+```{r}
+pangram %>% 
+  str_to_title()
+```
+
+```{r}
+pangram %>% 
+  str_to_sentence()
+```
+
+```{r}
+employees %>% 
+  select(first_name, last_name) %>% 
+  mutate(first_name_fix = str_to_title(first_name),
+         last_name_fix = str_to_title(last_name))
+```
+
+```{r}
+unbroken_string <- "We're going to break up this string."
+```
+
+```{r}
+unbroken_string %>% 
+  str_split(" ") %>% 
+  flatten_chr()
+```
+
+```{r}
+employees %>% 
+  mutate(new_postcode = str_split(postcode, " ")) %>% 
+  #takes strings out of list and gives each one their own row.
+  unnest(new_postcode)
+```
+
+
+```{r}
+employees %>% 
+  separate_rows(postcode, sep = " ")
+```
+
+```{r}
+employees %>% 
+  separate(postcode, c("postcode_outer", "postcode_inner"), sep = " ")
+```
+
+## Task - 10 mins
+Concatenate the strings "Manipulating" "strings" "is" "fun!"
+Capitalise the result and save it in a new variable
+Split the formatted string into individual characters
+
+```{r}
+loud_string <- str_c("Manipulating", "strings", "is", "fun!", sep = " ") %>% 
+  str_to_upper()
+
+loud_string %>% 
+  str_split("") %>% 
+  flatten_chr()
+```
+
+## More strings
+
+```{r}
+full_string <- "Let's grab a substring from this!"
+```
+
+```{r}
+full_string %>% 
+  str_sub(start = 6)
+```
+```{r}
+full_string %>% 
+  str_sub(-5, -1)
+```
+
+```{r}
+employees %>% 
+  mutate(postcode_inner = str_sub(postcode, -3),
+         postcode_outer = str_sub(postcode, 1, -4))
+```
+
+```{r}
+string <- "We're going to replace some words."
+```
+
+```{r}
+str_sub(string, 1, 22) <- "I've changed"
+```
+
+```{r}
+number <- 123456.789
+```
+
+```{r}
+number %>% 
+  format(nsmall = 1, decimal.mark = ",")
+```
+
+```{r}
+number %>% 
+  format(big.mark = ",", big.interval = 3) %>% 
+```
+When commas are introduced into a string that is a number, it can't be re-rendered as numeric using as.numeric()
+
+## Task - 10 mins
+```{r}
+spotify_songs <- read_csv("spotify_sample.csv")
+```
+
+
+-Upcase the text in the playlist_name column. Overwrite the existing column to store the result.
+
+```{r}
+spotify_songs <- spotify_songs %>% 
+  mutate(playlist_name = str_to_upper(playlist_name))
+```
+
+-Lowcase the text in the track_artist column. Store the result in a new column called track_artist_lowcase.
+
+```{r}
+spotify_songs <- spotify_songs %>% 
+  mutate(track_artist_lowcase = str_to_lower(track_artist), 
+         .after = track_artist)
+spotify_songs
+```
+
+
+Take the first 5 characters of the playlist_id column, and save it in a new column called playlist_start.
+
+```{r}
+spotify_songs %>% 
+  mutate(playlist_start = str_sub(playlist_id, start = 1, end = 5))
+```
+
+
+Take the first 4 characters of the track_album_release_date column and save it in a new column called year.
+
+```{r}
+spotify_songs %>% 
+  mutate(year = str_sub(track_album_release_date, 1, 4))
+```
+
+
+What else can you do to this dataset to practice? Can you work with the numbers? This is open ended - have fun!
+
+#Lesson 2 - Regular expressions
+
+Learning outcomes:
+What is a regular expressions
+Use them to match patterns in text
+Create regular expressions
+
+```{r}
+single_string <- "string a"
+strings <- c("string a", "string b", "string c", "string d", "striiiiiiing e")
+```
+
+```{r}
+pattern <- "a"
+```
+
+```{r}
+single_string %>% 
+  str_detect(pattern, negate = TRUE)
+```
+```{r}
+strings %>% 
+  str_detect(pattern)
+```
+
+```{r}
+pattern <- "str"
+
+strings %>% 
+  str_detect(pattern)
+```
+
+```{r}
+#square brackets cause R to search for a OR b OR c - so will return TRUE if any of these are present in the string
+pattern <- "[a-z]"
+
+strings %>% 
+  str_detect(pattern)
+```
+
+Regular expressions are case sensitive by nature, you need to add (?i) to make it ignore the case
+
+```{r}
+#adding (?i) causes R to ignore the case
+pattern <- "(?i)[A-Z]"
+
+strings %>% 
+  str_detect(pattern)
+```
+
+```{r}
+#Using the curly brackets specifies the number of the chosen character you're looking for
+pattern <- "i{3}"
+
+strings %>% 
+  str_detect(pattern)
+```
+
+```{r}
+#Adding the comma after the number in the curly bracket allows you to look for n or more (3 or more)
+pattern <- "i{3,}"
+#Find between 3 and 6 i's
+pattern <- "i{3,6}"
+
+strings %>% 
+  str_detect(pattern)
+```
+
+```{r}
+pattern <- "str|gr"
+
+strings %>% 
+  str_detect(pattern)
+```
+## Task - 15 min
+
+```{r}
+codeclan_strings <- c(
+  "We're having great fun learning about data analysis at CodeClan!",
+"CodeClan is at 37 Castle Terrace in Edinburgh and ClockWise in Glasgow",
+"Our cohort code starts with DE or DR",
+"You get a great view of the castle or the national conservatoire from just outside CodeClan's door")
+```
+
+```{r}
+codeclan_strings %>% 
+  str_detect("CodeClan")
+```
+
+```{r}
+codeclan_strings %>% 
+  str_detect("[:upper:]{2}")
+
+codeclan_strings %>% 
+  str_detect("[A-Z][A-Z]")
+```
+
+```{r}
+pattern <- "(?i)Castle"
+
+codeclan_strings %>% 
+  str_detect(pattern, negate = TRUE)
+```
+
+
+## regex continued
+
+```{r}
+strings <- c(
+  "This string has an_address@email.com in it", 
+  "This one has user.name@company.co.uk", 
+  "Now we've got other_person_123@server.net and my.name@runningoutofideas.com"
+)
+```
+
+
+## Useful operators in regex
+? - zero or one {0,1}
+* - zero or more {0,}
++ - one or more {1,}
+
+```{r}
+string <- "@emailprovider.com"
+pattern <- "[a-z]+@emailprovider.com"
+
+string %>% 
+  str_detect(pattern)
+```
+
+
+```{r}
+pattern <- "[a-z0-9[:punct:]]+@[a-z[:punct:]]+"
+
+strings %>% 
+  str_extract_all(pattern)
+```
+
+When you want to detect ".", you need to add two backslashes to escape their special meaning "\\."
+
+```{r}
+pattern <- "[a-z0-9[:punct:]]+@[a-z[:punct:]]+"
+
+strings %>% 
+  str_replace_all(pattern, "REDACTED")
+```
+
+## Task - 15 min
+- Make a vector containing the strings:
+"Colin's mobile number definitely isn't 07777777777."
+"A landline might be 01010 123456."
+"Mhairi, Del, Aileen and Steph helped write these notes"
+"I'm called your_name_here and I live in your_town_here."
+Use regular expressions to:
+-Extract all the names
+-Extract the landline number
+-Insert your name and where you live into the fourth string
+
+```{r}
+contact_string <- c(
+  "Colin's mobile number definitely isn't 07777777777.",
+  "A landline might be 01010 123456.",
+  "Mhairi, Del, Aileen and Steph helped write these notes",
+  "I'm called your_name_here and I live in your_town_here."
+  )
+```
+
+```{r}
+#Extract all the names
+contact_string %>% 
+str_extract_all("[A-Z][a-z]+")
+```
+
+```{r}
+#Extract the landline number
+contact_string %>% 
+str_extract_all("[:digit:]+[:space:][:digit:]+")
+```
+
+```{r}
+#insert your name and where you live
+pattern1 <- "[a-z_]+name+[a-z_]+"
+pattern2 <- "[a-z_]+town+[a-z_]+"
+
+contact_string %>% 
+  str_replace_all(c(pattern1, pattern2), c("Jamie", "Glasgow"))
+```
+
+
+```{r}
+test_strings <- c(
+  "abc", 
+  "Abc",
+  "abC",
+  "s"
+)
+```
+
+```{r}
+pattern <- "^[a-z]+[a-zA-z]*"
+pattern2 <- "[a-zA-z]*[a-z]$"
+pattern3 <- "^[a-z]+$"
+
+test_strings %>% 
+  str_extract_all(pattern3)
+```
+
+```{r}
+student <- c("Abigail", "Bjorn", "Caitlin")
+age <- c(25, 56, 40)
+emails <- c("abigal12@company.co.uk", "bsmith@gmail.co.uk", "caitlin_1980")
+
+student_info <- tibble(student, age, emails)
+
+student_info 
+```
+
+
+```{r}
+student_info %>% 
+  mutate(email_detect = str_detect(emails, "[a-z0-9]+@"))
+```
+
+```{r}
+student_info %>% 
+  mutate(emails = str_extract(emails, "@[a-z.]+"))
+```
+

@@ -1,0 +1,60 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+```
+# Lab
+## Q1: Are the Thought Police ever mentioned?
+
+
+
+```{r}
+#Detect thought police, ignore case
+whole_text %>% 
+  str_detect("(?i)Thought Police")
+```
+## Q2: Count how often big brother is mentioned
+
+```{r}
+#Counts the number of instances of big brother, ignore case
+whole_text %>% 
+  str_count("(?i)Big Brother")
+```
+
+## Q3: The chapter is written from the point of view of the protagonist, Winston. Does he ever mention the other main character (Julia) by name?
+No
+
+```{r}
+#Detect Julia, ignore case
+whole_text %>% 
+  str_detect("(?i)Julia")
+```
+
+## Q4: Winston writes the date in a specific format: month nth, year eg. August 5th, 2019. Write a regular expression to match dates in that format and find the date written in his diary.
+
+```{r}
+whole_text %>% 
+  str_extract_all("[A-Z][a-z]+[:space:][1-9]{1,2}[a-z]{2}[:punct:][:space:][1-9]{4}")
+```
+##Q5: 
+
+```{r}
+whole_text %>% 
+  str_replace_all("Winston | Winston Smith", "REDACTED")
+```
+
+Q6
+
+```{r}
+whole_text %>% 
+  str_extract_all("(?i)[:space:]gin[[:space:][:punct:]]")
+```
+```{r}
+whole_text <- whole_text %>% 
+  str_replace_all(c(" GIN." = " VODKA.",
+                    " gin." = " vodka.",
+                    " gin " = " vodka "))
+```
+
