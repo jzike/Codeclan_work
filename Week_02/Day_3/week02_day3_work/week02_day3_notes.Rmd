@@ -1,0 +1,554 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Today's agenda
+
+More of a "programmy" day
+Can sometimes feel divorced from analysis techniques as we've learned so far
+
+1. Data structures
+2. Control flow
+3. Functions
+
+# Session 1 - Matrices and Lists
+
+## Learning objectives
+
+-Know what lists and matrices are
+  -Matrix is a 2D structure (like a dataframe)
+  -List is a non-atomic data structure - can contain several values and data types
+-Know how to create lists and matrices
+  -list()
+  -matrix()
+-Be able to do some basic manipulations on lists and matrices
+  -"[[]]"
+  -"[]"
+  -for lists: "$", remember that a data frame is a list, so can also use "$" in data frames
+  -for matrices - index by _row_, then _column_
+
+# Lists
+
+```{r}
+x <- list(1, "a", TRUE, c(1, 2, 3))
+
+v <- 1:5
+
+c(1, "a", TRUE, c(1, 2, 3))
+
+as.list(v)
+```
+
+## Subset
+
+```{r}
+#Need double square brackets when trying to return a vector from a list - if you use single square brakets, it will return a list
+x[[2]]
+
+x[2]
+```
+
+##Named list
+
+```{r}
+named_list <- list(a = "I love R", b = 1:10)
+named_list$a
+```
+
+-Data frames are lists.
+-Some tidyverse functions work the same as base R functions - e.g. pull() function works the same as double square brackets [[]]
+-The best argument for tidyverse is that it shows a clear progression - it is clear what is happening
+
+```{r}
+student_info <- list(
+                Agnes = list(height = 1.8, shoe_size = 8L),
+                Bobby = list(height = 2.1, gender = "Male"),
+                Charlie = list(gender = "Female", likes_beets = TRUE)
+)
+
+str(student_info)
+n <- "Agnes"
+student_info$Agnes$height #Use this if you are sure which column you want - and it won't CHANGE
+student_info[["Agnes"]][["height"]]#Use this if you want to access programmatically, also because its safer
+```
+
+## Task
+Make a named list that contains a numeric vector and a character vector.
+    Access the second element of your list using double square brackets [[]]. What is it’s class?
+    Access the second element of your list using single square brackets []. What is it’s class?
+    Access the second element of your list by name. What is it’s class?
+    
+```{r}
+task_list<- list(a = "Hello all", b = 1:5)
+
+task_list[[2]] #class integer
+
+task_list[2] #class list
+
+task_list$b #class integer
+```
+
+c() - combines elements together into a "flat" structure e.g. a vector
+list() - combines elements together 
+
+# Matrices
+
+Data frames are heterogeneous data structures - multiple data classes are allowed
+Matrices are homogenous data structures - only one data class is allowed.
+
+## Creating matrices
+```{r}
+m <- matrix (1:12, ncol = 3, byrow = FALSE) # R uses column order (e.g. fills down columns first) unless you use the byrow argument
+
+class(m)
+typeof(m)
+```
+
+## Indexing a matrix
+
+m[row number, column number]
+
+```{r}
+
+m[2:3, ]
+m
+m[2:3, 2]
+m[c(1, 3), c(1, 3)]
+m[c(1, 3), -2]
+```
+Matrices work in a vectorized way
+```{r}
+v * 2
+
+m - 2
+```
+
+```{r}
+rowSums(m)
+colSums(m)
+
+rowMeans(m)
+colMeans(m)
+```
+
+## Task
+
+Make a matrix with 3 rows and 4 columns. Each column should contain the numbers 1 - 3
+
+```{r}
+task_matrix <- matrix(1:3, nrow = 3, ncol = 4)
+```
+
+
+
+Find the element in the 2nd row, 3rd column
+Check that all the columns are identical by checking that their sums are the same
+```{r}
+#Select the element in the 2nd row, 3rd column
+task_matrix[2, 3]
+#Take sum of each column
+colSums(task_matrix)
+```
+
+```{r}
+rep(1:3, each = 3)
+colnames(m) <- paste0("col_", 1:3)
+rownames(m) <- paste0("row_", 1:4) #paste0 function doesn't have a default seperator, paste has one space as a default seperator.
+```
+
+#Session 2 -- Control flow
+
+##Learning objectives
+-Know the structure of all the conditional statements
+-Be able to nest conditional statements
+-Know how to use "for" loops, but understand when they should and should not be used
+
+#"if" statements
+
+if(this thing is true){# Then
+Do this thing
+}
+
+if(weather == "Sunny"){
+hang_up_washing()
+}
+
+
+```{r}
+x <- 10
+y <- 15
+
+if(x < y){#then
+  print("yes")}
+
+```
+If is not a vectorized element, so it doesn't recycle over an entire vector. For example, the below will return an error unless the logical operator is changed to %in%
+```{r}
+x <- 10
+y <- 5:20
+
+if(x < y){#then
+  print("yes")}
+
+```
+
+## Task
+
+```{r}
+
+x <- 21
+  
+if(x %% 2 == 0){
+  print("Yes that divides by 2")
+}
+```
+
+#If else statements
+
+if(this thing is true){# if the condition is TRUE, Then
+Do this thing
+}else{ #otherwise,
+Do this thing instead
+}
+
+if(weather == "Rainy"){
+wear_wellies()
+} else {
+wear_trainers()
+}
+
+```{r}
+
+x <- 21
+y <- 10:50
+  
+if(x %% 2 == 0){
+  print("Yes that divides by 2")
+} else {
+  print("No")
+}
+
+if(x %in% y){
+  print("Yes")
+} else {
+  print("No")
+}
+```
+
+## Task - 1 - Edit your code from the first exercise so that it prints 'Yes that divides' when x is divisible by 2, and prints "No that does not divide"
+
+```{r}
+x <- 21
+y <- 10:50
+  
+if(x %% 2 == 0){
+  print("Yes that divides by 2")
+} else {
+  print("No that does not divide")
+}
+```
+## Task 2 - 
+Here's an example of a nested if-else statement.
+Predict what it's going to print out for the following conditions.
+-When x is 5 and y is 10
+-When x is 6 and y if 12
+-When x is 6 and y is 13
+
+```{r}
+x <- 6
+y <- 13
+
+if (x %in% c(3, 4, 5)){
+  
+  print("x is in our list")
+  
+  if (x == 5){
+    
+    print("x is exactly 5")
+    
+  }
+  
+} else {
+  
+  print("Start of else statement")
+  
+  if (y %% x == 0){
+    
+    print("x divides y")
+  
+  } else{
+    
+    print("x does not divide Y")
+  }
+  
+  print ("End of else statement")
+  
+}
+```
+# Loops
+
+- "for" loops 
+  - used when we know how many iterations we need
+  - ends after desired number of loops
+  
+- "while" loops 
+  - used when we don't know how many iterations we need
+  - will end when a condition is met
+
+Bear in mind:
+Loops are dead useful,
+BUT we usually can avoid them in R
+
+## for() loops
+
+For loops might be slow, but probably because a failure to vectorize
+
+for (element in vector){
+print(element * 2)
+}
+
+
+```{r}
+v <- 10:20
+
+v * 2
+```
+```{r}
+for (item in v) {
+ print(item * 2) 
+}
+```
+
+```{r}
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+
+for (day in weekdays){
+  #phrase <- paste("The day is", day)
+  #print(phrase)
+  print(paste("The day is", day))#short version, use long version for more complicated
+}
+```
+
+## while() loops
+
+Careful - these can sometimes get stuck in an infinite loop
+
+```{r}
+current_value <- 1 #initialise your variable first
+stop_value <- 10
+
+while(current_value < stop_value){
+  current_value <- current_value + 1
+  print(current_value)
+}
+```
+
+## Alternative ways to index for a loop
+
+```{r}
+weekdays
+len_weekdays <- length(weekdays)
+
+for(i in 1:len_weekdays){
+  phrase <- paste("The day is", weekdays[i])
+  print(phrase)
+}
+```
+
+## Replacing a vcetor with a loop __TERRIBLE PRACTICE__
+
+```{r}
+weekdays
+len_weekdays <- length(weekdays)
+for(i in 1:len_weekdays){
+  plural <- paste0(weekdays[i], "s") #creating a new value from the old based on the index i
+  weekdays[i] <- plural #modifying each vector element based on the index i
+}
+
+```
+The above is a very complicated way of doing this:
+
+```{r}
+paste0(weekdays, "s")
+```
+
+## Nested loops
+
+```{r}
+m <- matrix(1:12, 4)
+nrows <- nrow(m)
+ncols <- ncol(m)
+
+for(row_i in 1:nrows){
+  print(m[row_i, ])
+}
+
+for(row_i in 1:nrows){
+  for(col_i in 1:ncols){
+    print(m[row_i, col_i])
+  }
+}
+```
+
+```{r}
+product_matrix <- matrix(NA, nrow = 5, ncol = 5)
+nrows <- dim(product_matrix)[1]
+ncols <- dim(product_matrix)[2]
+
+for(i in 1: nrows(product_matrix)){
+  for (j in 1:ncols(product_matrix))
+  #
+  product_matrix[i, j] <- i * j
+}
+```
+
+```{r}
+example_matrix = matrix(1:25, nrow = 5, ncol = 5)
+example_matrix 
+
+for (row_index in 1:5){
+  for (col_index in 1:5){
+    if (row_index == col_index){
+      print(example_matrix[row_index, col_index])
+    }
+   }
+}
+```
+
+```{r}
+paste0("Today is ", weekdays)
+```
+
+# Functions
+## Learning objectives
+
+-Be able to write your own functions
+-Know best practice for writing R functions
+
+R is mostly a functional programming language
+__OOP__ object oriented programming language
+
+A function is an isolated block of code that accepts an input (or inputs) and returns an output.
+
+Think of it as being like a machine on a production line: 
+unprocessed items go into the machine, processed items come out
+
+'nchar' 
+'nchar(x, type = "chars", allowNA = FALSE, keepNA = NA)
+-Arguments need to be in the order they are listed unless you're going to name them explicitly
+
+parameter <---> argument (parameter and argument are interchangable)
+```{r}
+nchar("hello", allowNA = TRUE)
+```
+
+'paste' (..., sep = " ", collapse = NULL, recycle0 = FALSE)
+Any parameters after dots must be named
+```{r}
+paste("a", "b", "c", "d", sep = "--")
+```
+
+## Writing our own functions
+
+```{r}
+function_name <- function(par_1, par_2 = NULL, par_3 = "default value")){
+  #stuff to to do
+  
+  #the last thing that's done will be the return value
+}
+```
+
+```{r}
+multiply_by_5 <- function(x) {
+  x * 5
+}
+multiply_by_5(2)
+```
+
+```{r}
+multiply_by <- function(x, y) {
+  z <- x * y
+  z
+}
+
+multiply_by(2, 10)
+```
+
+```{r}
+multiply_by <- function(x, y = 3) {
+  z <- x * y
+  z
+}
+```
+
+```{r}
+make_price <- function(x, currency = "£"){
+  paste0(currency, x)
+}
+
+make_price(3)
+```
+
+
+
+## Scope
+
+What can a function "see"?
+
+```{r}
+n <- 8
+multiply_by_n <- function(x) {
+  x * n
+}
+```
+
+Global scope - variables specified in the R Global environment
+Local scope - local to the function
+
+Function can look into the global environment
+Don't use variables inside the function that aren't specified in the function b/c it will look outside the local scope if it can't find and use variables from the global scope (some of which you might not be aware of.)
+
+```{r}
+multiply_by_n <- function(x, n){
+  ans <- x * n
+  if(ans %% 2 == 1){
+    z <- paste("x is odd")
+  }else{
+    z <- paste("x is even")
+  }
+  z
+}
+multiply_by_n(3, 3)
+```
+
+## Best practice for writing functions
+
+__good__
+
+Name with verbs if you can
+
+"add_3()"
+"format_number()"
+"read_data()"
+
+__bad__
+
+"adder()"
+"number_formatter()"
+"data_reader()"
+
+-Braces {} should start on a line and then end on their own line - for example:
+```{r}
+n <- 8
+multiply_by_n <- function(x) {
+  x * n
+}
+```
+
+__DRY__ principle
+Don't Repeat Yourself
+
+## Debugging
+
+debugonce()
