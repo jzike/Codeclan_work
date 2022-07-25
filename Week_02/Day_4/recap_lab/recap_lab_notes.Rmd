@@ -1,0 +1,40 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Libraries
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+# Question 1. Read in the data containing dietary compositions and familiarise yourself with it.
+
+```{r}
+country_codes <- read_csv("country_codes.csv")
+dietary_by_country <- read_csv("dietary-composition-by-country.csv")
+country_codes
+dietary_by_country
+```
+
+# Question 2 - Change the data to long format with food categories going to a column called kcal_source and the calorie values going to a column called avg_daily_kcals. Save into variable diet_comp_clean
+
+```{r}
+diet_comp_clean <- dietary_by_country %>% 
+pivot_longer(cols = ends_with("(FAO (2017))"),
+names_to = "kcal_source",
+values_to = "avg_daily_kcals")
+diet_comp_clean
+```
+
+# Question 3 - Clean kcal_source categories by removing any unnecessary information. Then clean all column names, and rename the column ‘entity’ to ‘country’. Overwrite diet_comp_clean with your results. [Hint: you’ll probably have to use some regex to clean kcal_source categories]
+
+```{r}
+diet_comp_clean %>%
+  mutate(kcal_source = str_sub(kcal_source, 1, nchar(kcal_source) - 13)) %>% 
+  clean_names() %>% 
+  rename(country = entity)
+
+```
+

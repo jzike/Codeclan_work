@@ -1,0 +1,275 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(testthat)
+library(tidyverse)
+```
+
+
+# Lesson 1 - Unit testing in R
+
+-Reproducibility - rigour, consistency
+-Unit testing - testing small bits of code, usually involving writing some code to test that your function is working properly
+  -With test wuite, we have a tight specification. Think of a piece of code as doing exactly what the tests specify it does: no more, no less.
+  
+```{r}
+is_leap_year <- function(year){
+  
+  if(year %% 100 == 0){
+    if(year %% 400 == 0){
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  }
+  if(year %% 4 ==0){
+    return(TRUE)
+  
+  }else{
+    return(FALSE)
+  }
+}
+```
+
+Description
+If the year is divisible by 100 and divisible by 400, it is a leap year, but there are some special cases where it is divisible by 100, but not by 400 which are not leap years, so it will return false on these. Years that don't divide by 100 will enter the second if function, which will return a TRUE if they are divisible by 4. We need the special case if function (and its nested if/else function) to come first because it will catch those special cases that we don't want to enter the second if function because they would return a TRUE when the year might be one of those special cases.
+
+## Functions
+expect_equal(): checking that the objects give the answer we expect
+expect_error(): checking that code throws an error
+testthat()
+
+```{r}
+a <- 10
+
+expect_equal(a, 10)
+```
+
+```{r}
+expect_equal(a, 11)
+```
+
+test_that()
+
+```{r}
+test_that("Real leap years return TRUE", {
+  expect_equal(is_leap_year(2020), TRUE)
+  expect_equal(is_leap_year(2000), TRUE)
+  
+})
+```
+
+## Task - 5 minutes
+Take the following test code and write down an explanation of all the different parts:
+What is the test name?
+What is the expectation?
+What are you expecting this test to do?
+Think carefully about the logic of this one before you write down your assumptions… you may want to try and run it to see what happens first.
+
+
+second test : one expectation
+
+test_that("Character input returns an error", {
+  expect_error(is_leap_year("year"))
+})
+Test passed 🎉
+
+-Character input returns an error
+-The expectation is that the "is_leap_year" function will return an error if characters are passed to it instead of numbers.
+-Test whether an error is returned from passing "year" into the "is_leap_year" function
+
+## Stop function
+stop() - stops function and returns an error
+
+With the above function (that doesn't have an extra if function to account for non-numeric data), this test will say that there is no error for "TRUE" b/c logical variables can be coearced into numeric format (e.g. FALSE = 0 and TRUE = 1). This test shows us that we need an extra if function to account for logical input.
+```{r}
+test_that("Non-numeric input returns an error",{
+  expect_error(is_leap_year("year"))
+  expect_error(is_leap_year(TRUE))
+}
+          )
+```
+
+
+
+Revised is_leap_year function with extra if function at beginning to account for non-numeric input.
+
+```{r}
+is_leap_year <- function(year){
+  #add in condition for non-numeric data
+  if(!is.numeric(year)){
+    #Stops the function if input is non-numeric
+    stop("Non-numeric input :(")
+  }
+  if(year %% 100 == 0){
+    if(year %% 400 == 0){
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  }
+  if(year %% 4 ==0){
+    return(TRUE)
+  
+  }else{
+    return(FALSE)
+  }
+}
+```
+
+## Task - 5 minutes
+Write a test that checks whether 2017 and 1900 are correctly identified as not being leap years by our is_leap_year() function.
+
+```{r}
+test_that("Non leap years return FALSE", {
+  expect_equal(is_leap_year(2017), FALSE)
+  expect_equal(is_leap_year(1900), FALSE)
+  
+})
+```
+
+# Lesson 2 - Assertive programming
+
+Learning objectives
+-Know what assertive programming is and why it is useful
+-Be able to use assertr and stopifnot to write assertions
+
+## Functions
+assertr()
+stopifnot()
+
+Assertive programming inserts checks and balances, introduce rules.
+
+```{r}
+weather_one <- read_csv("delhi_weather_one.csv")
+```
+
+```{r}
+weather_report <- function(weather){
+  # Our average temperature, humidity and wind speed 
+  weather_means <- 
+  weather %>% 
+  summarise(
+    mean_temp = mean(temp),
+    mean_humidity = mean(humidity),
+    mean_windspeed = mean(wind_speed)
+  )
+
+# Show hot and humid days
+hot_and_humid <- 
+weather %>% 
+  filter(temp > 20) %>% 
+  filter(humidity > 55)
+
+return(list(weather_means, hot_and_humid))
+}
+
+weather_report(weather_one)
+```
+
+```{r}
+weather_two <- read_csv("delhi_weather_two.csv")
+weather_report(weather_two)
+```
+
+## Using assertr
+
+```{r}
+library(assertr)
+```
+
+```{r}
+weather_report <- function(weather){
+  
+  #put in the checks on the data first
+  weather %>% 
+    #lowest ever temp in delhi was -31 and highest was 51
+    verify(temp >= -35 & temp <= 55) %>% 
+    verify(wind_speed >= 0 & wind_speed <= 108) %>% 
+    #humidity is a proportion
+    verify(humidity >= 0 & humidity <= 100)
+  
+  
+  
+  # Our average temperature, humidity and wind speed 
+  weather_means <- 
+  weather %>% 
+  summarise(
+    mean_temp = mean(temp),
+    mean_humidity = mean(humidity),
+    mean_windspeed = mean(wind_speed)
+  )
+
+# Show hot and humid days
+hot_and_humid <- 
+weather %>% 
+  filter(temp > 20) %>% 
+  filter(humidity > 55)
+
+return(list(weather_means, hot_and_humid))
+}
+```
+
+```{r}
+weather_report(weather_two)
+```
+
+## Example using stopifnot for more general checks
+
+```{r}
+weather_report <- function(weather){
+  
+  stopifnot(
+    nrow(weather) > 15,
+    ncol(weather) == 4,
+    #check for missing values
+    drop_na(weather) == weather
+  )
+  
+  
+  #put in the checks on the data first
+  weather %>% 
+    #lowest ever temp in delhi was -31 and highest was 51
+    verify(temp >= -35 & temp <= 55) %>% 
+    verify(wind_speed >= 0 & wind_speed <= 108) %>% 
+    #humidity is a proportion
+    verify(humidity >= 0 & humidity <= 100)
+  
+  
+  
+  # Our average temperature, humidity and wind speed 
+  weather_means <- 
+  weather %>% 
+  summarise(
+    mean_temp = mean(temp),
+    mean_humidity = mean(humidity),
+    mean_windspeed = mean(wind_speed)
+  )
+
+# Show hot and humid days
+hot_and_humid <- 
+weather %>% 
+  filter(temp > 20) %>% 
+  filter(humidity > 55)
+
+return(list(weather_means, hot_and_humid))
+}
+```
+
+```{r}
+weather_report(weather_two)
+```
+
+# Lesson 3 - Relative filepaths
+
+Learning objectives
+-Understand different between relative and absolute file paths
+
+##Functions
+here()
+
+-A path that starts at the root folder of the comptuer is an absolute path
+-A relative path starts at a given folder the provides the folders and file starting from that folder
