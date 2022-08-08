@@ -1,0 +1,112 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Connecting R to a Database
+- Get data from a database and bring into R for further analysis
+- Connect R to postgres database (omni pool)
+
+## Don't put login credentials on github (or any public place)
+
+- be careful with how we work with our login details
+
+-- host name
+-- username
+-- database
+-- port
+-- password
+
+Strategies for protecting login details
+- gitignore
+-store outside of a git repo
+
+Load in our secret login credentials into R
+
+```{r}
+source("secrets.R")
+```
+
+
+
+Connecting to a database
+
+```{r}
+library(RPostgres)
+
+db_connection <- dbConnect(
+  drv = Postgres(),
+  host = om_host,
+  port = om_port,
+  dbname = om_atabase,
+  user = om_username,
+  password = om_password,
+  bigint = "numeric"
+)
+
+# not that we've created our connection object, we don't need our credentials anymore - we can remove these from our environment
+
+rm(om_username,
+   om_password)
+
+```
+
+
+## Testing our connection
+
+
+```{r}
+dbListTables (conn = db_connection)
+```
+
+
+## Running queries
+
+```{r}
+employees_table <- dbGetQuery(conn = db_connection, statement = "SELECT * FROM employees;")
+```
+
+```{r}
+library (tidyverse)
+```
+
+```{r}
+employees_table %>% 
+  filter(department == "Legal")
+```
+
+
+## Using SQL code chunks in R Notebooks
+
+
+#To put SQL code into R, you need to specify the language in the code chunk
+and then give it a connection
+```{sql, connection = db_connection}
+SELECT *
+FROM employees
+LIMIT 10
+```
+
+
+Running a query and capturing the output
+creates/updates an object. In this case "out"
+
+
+```{sql, connection = db_connection, output.var = "out"}
+SELECT *
+FROM employees
+LIMIT 10
+```
+
+Then we can call "out" in R
+```{r}
+out %>% 
+  select(first_name, last_name, department)
+```
+
+## When finished querying the database, you should disconnect 
+
+```{r}
+
+```
+
