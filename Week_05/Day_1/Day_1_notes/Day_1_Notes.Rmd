@@ -1,0 +1,522 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+students <- read_csv("data/students.csv")
+```
+# Introduction to ggplot---
+
+
+```{r}
+head(students, 10)
+```
+
+
+## Creating charts ---
+
+We want to visualise the frequency of superpower instance among students
+
+
+```{r}
+students %>% 
+  ggplot(aes(x = superpower)) +
+  geom_bar()
+```
+
+Customisation: colour
+Inside or outside aes()
+
+```{r}
+students %>% 
+  ggplot(aes(x = superpower)) +
+  geom_bar(fill = "light blue",
+           colour = "red")
+```
+
+Putting the colour into the aes() field allows us to add another layer of information to the graph
+
+```{r}
+students %>% 
+  ggplot(aes(x = superpower,
+             fill = school_year)) +
+  geom_bar()
+```
+
+Position adjustments
+
+dodge - clusters bars by year
+fill - allows us to compare the proportion of different school years voting for each superpower
+
+```{r}
+students %>% 
+  ggplot(aes(x = superpower,
+             fill = school_year)) +
+  geom_bar(position = "fill")
+```
+
+Statistical transformations
+
+```{r}
+students %>% 
+  ggplot(aes(x = superpower,
+             fill = school_year)) +
+  geom_bar(pstat = "count")
+```
+
+```{r}
+count_data <- students %>% 
+  group_by(superpower, school_year) %>% 
+  summarise(counts = n())
+```
+
+```{r}
+count_data %>% 
+  ggplot(aes(x = superpower,
+             y = counts, 
+             fill = school_year)) +
+  geom_bar(stat = "identity")
+```
+
+
+
+Visualise data that has already been aggregated - use geom_col()
+
+```{r}
+count_data %>% 
+  ggplot(aes(x = superpower,
+             y = counts, 
+             fill = school_year)) +
+  geom_col()
+```
+
+geom_bar and geom_histogram both have defaults for the aggregation
+
+## Labels
+
+A graph isn't complete until a label has been added
+Labels should be added for x, y and title.
+
+The \n means to take a new line and creates whitespace
+
+```{r}
+students %>% 
+  ggplot(aes(x = superpower,
+             fill = school_year)) +
+  geom_bar() +
+  labs(x = "\nSuperpower",
+       y = "Count",
+       title = "Preferred Superpower by School Year",
+       subtitle = "Data from students around the world\n",
+       fill = "School Year")
+```
+
+```{r}
+olympics_overall_medals <- read_csv("data/olympics_overall_medals.csv")
+```
+
+```{r}
+top_10 <- olympics_overall_medals %>% 
+  filter(season == "Summer", medal == "Gold") %>% 
+  slice_max(order_by = count, n = 10)
+```
+
+```{r}
+top_10 %>% 
+  ggplot(aes(x = team,
+             y = count)) +
+  geom_col() +
+  labs(x = "\nTeam",
+       y = "Count",
+       title = "Gold medals won in the Summer Olympics",
+       subtitle = "Data from the top 10 teams\n")
+```
+the bar chart shows the count of gold medals for the top 10 countries in the summer olympics
+
+
+```{r}
+top_10 %>% 
+  ggplot(aes(x = reorder(team, -count),
+             y = count)) +
+  geom_col(fill = "gold",
+           colour = "orange") +
+  labs(x = "\nTeam",
+       y = "Count",
+       title = "Gold medals won in the Summer Olympics",
+       subtitle = "Data from the top 10 teams\n")
+theme(axis.text.x = element_text(angle = 90))
+```
+
+
+## Layers
+
+```{r}
+library(janitor)
+```
+
+```{r}
+chick_weight <- ChickWeight %>% 
+  clean_names()
+```
+
+```{r}
+chick_weight %>% 
+  ggplot(aes(x = time,
+             y = weight,
+             group = chick,
+             colour = diet)) +
+  geom_line()
+```
+
+Note that you can overwrite the aesthetics in the global aesthetics (e.g. the ones that are in the ggplot)
+
+geom_smooth() tries to plot a line of best fit for each of the diets
+
+alpha is for transparency - 0 is completely transparent and 1 is not transparent at all
+
+```{r}
+chick_weight %>% 
+  ggplot(aes(x = time,
+             y = weight,
+             colour = diet)) +
+  geom_line(aes(group = chick),
+            alpha = 0.25) +
+  geom_point(alpha = 0.5) +
+  geom_smooth()
+```
+
+## Task - 10 minutes
+
+Go back to using the students dataset
+1) use geom_point to make scatter graph, with the height of students on the x axis and their reaction time on the y axis
+2) Make all the points blue. For geom_point the colour of the points are controlled by colour
+3) Make the colour of hte points depend on the superpower the student wishes they had
+4) Write down what the graph tells you overall
+
+```{r}
+students %>% 
+  ggplot(aes(x = height_cm,
+             y = reaction_time,
+             colour = superpower)) +
+  geom_point()
+```
+
+The graph shows the student's height and their reaction time, with the colour indicating which superpower they wish they had. You can tell that there isn't any relationship between height and reaction time from the fact that the best line of fit would be close to a straight line. This indicates that the reaction time doesn't increase or decrease very much depending on the student's height. There also isn't any clear relationship between superpower and height or reaction time.
+
+```{r}
+students %>% 
+  ggplot(aes(x = height_cm,
+             y = reaction_time,
+             colour = superpower)) +
+  geom_point() +
+  labs(x = "Height in centimetres",
+       y = "Reaction time",
+       title = "Relationship between student height and reaction time",
+       subtitle = "Data includes student's desired superpower")
+```
+Flip the y axis so that the fastest reaction time is on the left
+
+```{r}
+students %>% 
+  ggplot(aes(x = height_cm,
+             y = reaction_time,
+             colour = superpower)) +
+  geom_point() +
+  scale_y_reverse() +
+  labs(x = "Height in centimetres",
+       y = "Reaction time",
+       title = "Relationship between student height and reaction time",
+       subtitle = "Data includes student's desired superpower")
+```
+
+```{r}
+pets <- read_csv("data/pets.csv")
+```
+
+Create a labelled scatter plot, of pet age vs. weight, with the following 5 mapping aesthetics. For items 3-5 you may want to look at the help file of ?geom_point and read about different aesthetics:
+1) We want age on the x axis and weight on the y axis
+2) We want the points to be different colours depending on the gender of hte pet
+3) We want different shapes depending on the type of animal
+4) We want all the points to be bigger than normal (size 4).
+5) We also want lables with the pet's names next to each point
+
+
+```{r}
+pets %>% 
+  ggplot(aes(x = age,
+             y = weight,
+             colour = sex)) +
+  geom_point(aes(shape = animal, colour = sex), size = 4) +
+  geom_text(aes(label = name), 
+            nudge_x = 0.8)
+```
+
+## Saving a plot
+
+```{r}
+ggsave("g1_sav.png")
+```
+
+# Facets ---
+
+- Know what facets are and when to use them
+- Be able to create ggplot2 plots with facets
+
+Convert one plot into multiple related plots - provides a convenient and quick way to group data into related categories
+
+```{r}
+chick_weight %>% 
+  ggplot(aes(x = time,
+             y = weight,
+             group = chick,
+             colour = diet)) +
+  geom_line()
+```
+
+```{r}
+chick_weight %>% 
+  ggplot(aes(x = time,
+             y = weight,
+             group = chick,
+             colour = diet)) +
+  geom_line() +
+  facet_wrap(~ diet,
+             nrow = 1)
+
+```
+
+## Task - 5 min
+
+Load in benefits data
+
+Use geom_histogram to create a histogram showing the number of unemployed by age. Then facet the graph based on biological sex.
+Hint: geom_histogram is almost the same as geom_bar, but is better suited to plotting continuous data because of the binning.
+
+```{r}
+benefits_data <- read_csv("data/benefits.csv")
+```
+
+```{r}
+benefits_data %>% 
+  ggplot(aes(x = age)) +
+  geom_histogram() +
+  facet_wrap(~ sex) +
+  labs(x = "\nAge",
+       y = "Number of unemployed people",
+       title = "Frequency of unemployed blue collar workers by age",
+       subtitle = "Data grouped by sex\n")
+```
+
+Facet grid - facet along more than one variable.
+
+```{r}
+benefits_data %>% 
+  ggplot(aes(x = age,
+             fill = sex)) +
+  geom_histogram(col = "white") +
+  facet_grid(married ~ sex,
+             labeller = "label_both") #label both includes both variable names in the labels
+```
+
+```{r}
+benefits_data %>% 
+  ggplot(aes(x = age)) +
+  geom_histogram(col = "white") +
+  facet_wrap(~ sex,
+             nrow = 1,
+             scales = "free_y") #makes it so that the faceted graphs can take different scales
+```
+
+If you want to created faceted graphs according to a continuous variable, you need to create "bins" for the variable (e.g. 20-29, 30-39, 40-49, 50-59 etc.)
+
+The ways to do this include:
+```{r}
+cut_interval
+cut_width
+cut_number
+```
+
+
+
+# Colours and themes
+-Understand different colour schemes
+-Be able to change the colour palette of a plot
+-Be able to change the theme of a plot
+
+Sequential - for categorical data from low to high
+Diverging - when there is a meaningful midpoint (continuous data)
+Categorical - categories aren't ordered and have no meaningful difference.
+Alert/highlight - When there is interest in a specific variable for some reason
+
+```{r}
+pets %>% 
+  ggplot(aes(x = weight,
+             y = age)) +
+  geom_point(colour = "steelblue")
+```
+
+```{r}
+pets %>% 
+  ggplot(aes(x = weight,
+             y = age)) +
+  geom_point(colour = "#3333cc")
+```
+
+## Colour palettes
+### Categorical
+```{r}
+pets %>% 
+  ggplot(aes(x = animal,
+             fill = sex)) +
+  geom_bar()
+```
+### Continuous
+```{r}
+pets %>% 
+  ggplot(aes(x = age,
+             y = weight,
+             colour = sleep)) +
+geom_point()
+```
+
+### Sequential - 2 colour gradient
+
+scale_colour gradient()
+scale_fill_gradient()
+
+```{r}
+pets %>% 
+  ggplot(aes(x = age,
+             y = weight,
+             colour = sleep)) +
+geom_point() +
+  scale_colour_gradient(low = "#aecfeb",
+                        high = "#027fe6")
+```
+
+### Divergent scale - 3 colour gradient
+
+scale_colour_gradient2()
+scale_fill_gradient2()
+
+```{r}
+pets %>% 
+  ggplot(aes(x = age,
+             y = weight,
+             colour = sleep)) +
+geom_point() +
+  scale_colour_gradient2(low = "blue",
+                         mid = "white",
+                         high = "red",
+                         midpoint = median(pets$sleep)) +
+  theme_bw() #makes the background of the graph white instead of grey
+```
+
+### Discrete colours
+
+```{r}
+students <- students %>% 
+  mutate(school_year = factor(school_year,
+                              levels = c("Year 7",
+                                         "Year 8",
+                                         "Year 9",
+                                         "Year 10",
+                                         "Year 11",
+                                         "Year 12")))
+```
+
+```{r}
+students %>% 
+  ggplot(aes(x = school_year,
+             fill = superpower)) +
+  geom_bar()
+```
+
+### Manual palette
+
+scale_colour_manual()
+...fill...
+
+```{r}
+students %>% 
+  ggplot(aes(x = school_year,
+             fill = superpower)) +
+  geom_bar() +
+  scale_fill_manual(
+    values = c(
+      "Fly" = "coral",
+      "Freeze time" = "seagreen",
+      "Invisibility" = "orange",
+      "Telepathy" = "red"
+    )
+  )
+```
+
+### Using palettes from ColorBrewer
+
+scale_fill_distiller - for continuous data
+scale_fill_brewer - for categorical data
+
+```{r}
+pets %>% 
+  ggplot(aes(x = weight,
+             y = age,
+             colour = sleep)) +
+  geom_point() +
+  scale_color_distiller(palette = "RdPu")
+```
+
+```{r}
+students %>% 
+  ggplot(aes(x = school_year,
+             fill = superpower)) +
+  geom_bar() +
+  scale_fill_brewer(palette = "Dark2")
+```
+
+## Themes
+```{r}
+students %>% 
+  ggplot(aes(x = school_year,
+             fill = superpower)) +
+  geom_bar() +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal()
+```
+
+### Theme : text
+
+```{r}
+students %>% 
+  ggplot(aes(x = school_year,
+             fill = superpower)) +
+  geom_bar() +
+  theme(axis.text = element_text(size = rel(1.5)))
+```
+
+```{r}
+students %>% 
+  ggplot(aes(x = school_year,
+             fill = superpower)) +
+  geom_bar() +
+  theme(axis.text = element_text(face = "bold"))
+```
+
+```{r}
+students %>% 
+  ggplot(aes(x = favorite_school_subject)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 45,
+                                   hjust = 1))
+```
+
+```{r}
+students %>% 
+  ggplot(aes(x = favorite_school_subject)) +
+  geom_bar() +
+  coord_flip()#flips the x and y axes
+```
+

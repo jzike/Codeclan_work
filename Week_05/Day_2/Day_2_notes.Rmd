@@ -1,0 +1,75 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+```
+
+```{r}
+total_sales <- total_sales
+```
+
+```{r}
+pal <- c("grey", Leeds = "red")
+ggplot(total_sales, aes(sales, branch, fill = branch)) +
+  geom_col() +
+  scale_fill_manual(values = pal, guide = "none")#guide = none means no guide for the fill 
+```
+
+```{r}
+total_sales_anno <- mutate(total_sales, label_text = ifelse(branch == "Leeds", "The Leeds branch has sales of 715k", NA))
+```
+
+```{r}
+ggplot(total_sales_anno, aes(sales, branch, fill = branch == "Leeds")) +
+  geom_col() +
+  scale_fill_manual(values = c("grey", "red"), guide = "none") +
+geom_text(aes(label = label_text), 
+  colour = "blue", size = 4, hjust = 1)
+```
+
+```{r}
+monthly_sales <- monthly_sales
+monthly_sales <- monthly_sales %>% 
+  mutate(month = factor(month, levels = c("Jan", "Feb", "March", "April")))
+```
+
+```{r}
+ggplot(monthly_sales) +
+  aes(x = branch,
+      y = sales,
+      fill = month) +
+  geom_col(position = "dodge") +
+  coord_flip()
+```
+
+```{r}
+monthly_sales_april <- monthly_sales %>% 
+  filter(month == "April")
+min_max <- max(abs(monthly_sales_april$difference_from_jan))
+```
+
+```{r}
+monthly_sales_april <- monthly_sales %>%
+  filter(month == "April") 
+
+min_max <-max(abs(monthly_sales_april$difference_from_jan))
+  
+
+ggplot(monthly_sales_april) +
+  aes(
+    x = reorder(branch, difference_from_jan),
+    y = difference_from_jan,
+    fill = difference_from_jan > 0
+  ) +
+  geom_col() +
+  ylim(-min_max, min_max) +
+    labs(y = "Difference in sales", x = "Branch location", title = "Sales differences between January and April") + 
+  scale_fill_manual(values = c("tomato", "seagreen"), name = "", labels = c("decrease", "increase")) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
