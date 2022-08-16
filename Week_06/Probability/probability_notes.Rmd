@@ -1,0 +1,451 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+# Libraries
+
+```{r}
+library(tidyverse)
+```
+
+
+## Session 1 -- Core definitions
+
+### Learning objectives recap
+
+- Recognise what is meant by the terms probability and statistics
+- Gain an understanding of core probability concepts
+- Gain an awareness of the mathematical properties of a probability
+
+
+```{r}
+source("prob.R")
+```
+
+```{r}
+s_two_dice <- rolldie(2)
+```
+
+```{r}
+s_two_dice
+s_two_dice %>% 
+  filter(X1 + X2 == 7) 
+```
+
+```{r}
+s_two_dice <- s_two_dice %>% 
+  mutate(total = X1 + X2)
+```
+
+```{r}
+s_sum_equals_seven <- s_two_dice %>% 
+  filter(total == 7)
+
+s_sum_gt_10 <- s_two_dice %>% 
+  filter(total > 10)
+```
+###Task
+```{r}
+first_die_even <- s_two_dice %>% 
+  filter(X1 %% 2 == 0)
+
+first_even_second_odd <- s_two_dice %>% 
+  filter(X1 %% 2 == 0,
+         X2 %% 2 == TRUE)
+```
+
+## Session 2 -- Counting rules
+
+### Learning objectives
+
+- Understand why _counting rules_ are important in probability theory
+- Know the counting rules for the following cases:
+    -single step experiments
+    -multiple step experiments
+    -permutations
+    -combinations
+    
+### Single step experiments
+
+example: throwing two dice in one go
+
+$$
+prob(event) = \frac{num(event\ outcomes)}{num(all\ outcomes)}
+$$
+
+
+
+```{r}
+s <- rolldie(2)
+
+total_seven <- s %>% 
+  filter(X1 + X2 == 7)
+```
+
+```{r}
+nrow(total_seven) / nrow(s)
+```
+
+### Multiple step experiments
+
+Step 1: rolling a dice - 6 possible outcomes
+Step 2: tossing a coin - 2 possible outcomes
+
+6 * 2
+
+What is the probability of 
+
+P(H) = 1/2
+P(6) = 1/6
+
+P(H) & P(6) = 1/2 * 1/6 = 1/12
+
+
+```{r}
+s_die <- rolldie(1)
+s_coin <- tosscoin(1)
+s_total = merge(s_coin, s_die)
+```
+
+```{r}
+head_six <- s_total %>% 
+  filter(toss1 == "H", X1 == 6)
+
+nrow(head_six) / nrow(s_total)
+```
+
+Note: this would be a different calculation than if we asked the question: what is the probability of getting a heads and then rolling a 6. We will cover that later on.
+
+### Permutations and combinations
+
+Permutation - an arrangement of outcomes in which the order matters
+
+Combination - an arrangement where order does not matter
+
+```{r}
+v <- 2:5
+#the below doesn't allow repeats in the combination of numbers
+fac <- function(n, r) {
+  factorial(n) / factorial(n - r)
+}
+
+fac(4, 4)
+fac(4, 2)
+fac(10, 4)
+```
+
+Imagine we are filling 3 senoir company positions(CEO, CTO, COO) from a board of 10 employees.
+
+
+```{r}
+library(gtools)
+```
+
+```{r}
+# 2 3 4 5
+
+permutations(4,4, repeats.allowed = TRUE)
+
+4 * 4 * 4 * 4
+```
+
+```{r}
+employees <- c("Alice", "Bob", "Carole", "David", "Elaine", "Fred", "Gabra",
+               "Hua", "Inigo", "Hugo")
+
+seniors <- as_tibble(permutations(n = 10, r = 3, v = employees,
+                       repeats.allowed = FALSE))
+seniors <- seniors %>% 
+  rename(CEO = V1, CTO = V2, COO = V3)
+```
+```{r}
+seniors %>% 
+  count(CEO)
+```
+
+
+
+What is the probarility of Alice being selected as CEO and Bob being selected
+as CTO, if the selection process is random
+
+```{r}
+seniors %>% 
+  filter(CEO == "Alice", CTO == "Bob")
+
+8/720 #8 is the number of ways that the CEO will be Alice and the CTO will be Bob and 720 is the total number of permutations of all 10 people for the 3 different positions
+```
+
+### Combinations
+
+Permutations: you draw objects from a collectiona nd place them into a group with internal structure, e.g. a list, a hierarchy (remember our case of senior exectutives, where the three employees went into labelled positions: CEO, CTO, COO).
+
+Combinations: you draw objects from a collection and place them into a group without internal structure, i.e. no labelled positions, roles or precedence in the group
+
+
+```{r}
+choose(n, r)
+num_draws <- choose(50, 6)
+
+options(scipen = 99)
+1/num_draws
+```
+
+Use the combinations() function in gtools for this task (don’t try to do it 
+manually). I have five flavours of ice cream to choose from:
+
+flavours <- c("vanilla", "chocolate", "raspberry", "strawberry", "pistachio")
+
+and a bowl that can hold three scoops. How many different variations in bowls 
+of ice cream can I have assuming:
+
+-Each scoop must be a different flavour (10)
+-I can repeat flavours if I wish? (35)
+
+```{r}
+flavours <- c("vanilla", "chocolate", "raspberry", "strawberry", "pistachio")
+
+as_tibble(combinations(5, 3, v = flavours, repeats.allowed = FALSE)) %>% 
+  nrow()
+
+as_tibble(combinations(5, 3, v = flavours, repeats.allowed = TRUE)) %>% 
+  nrow()
+```
+
+
+
+## Session 3 -- Combining events
+
+### Learning objectives
+
+-Understand the concept of the complement of an event
+-Be able to form AND and OR com
+
+```{r}
+s_four_coins <- tosscoin(4)
+s_four_coins
+```
+
+What is the probability that exactly two heads are thrown? P(2 heads)
+
+```{r}
+s_four_coins <- s_four_coins %>% 
+  mutate(num_heads = rowSums(. == "H"))
+
+s_four_coins
+```
+
+```{r}
+s_at_least_2_heads <- s_four_coins %>% 
+  filter(num_heads >= 2)
+
+# N 2+ heads
+s_at_least_2_heads
+
+#P 2 + heads
+prob_two_heads <- nrow(s_at_least_2_heads) / nrow(s_four_coins)
+
+
+prob_two_heads
+1 - prob_two_heads
+```
+
+### 'And' combinations
+
+event A: {1,2,3,4}
+event B: {3,4,5,6}
+
+What is the probability that 
+
+```{r}
+rolldie(2) %>% 
+  filter(X1 %in% 3:4,
+         X2 %in% 3:4)
+```
+
+### Task
+Given our four coin tossing example from above, wher is the probability of tossing at least one head and at least 1 tail. To do this you'll need to add a num tails column to s_four_coins and then think about satisfying the two conditions
+
+```{r}
+s_four_coins %>% 
+  mutate(num_tails = rowSums(. == "T")) %>% 
+  filter(num_heads >=1, num_tails >=1) %>% 
+  summarise(prob = n() / nrow(s_four_coins))
+```
+
+## Mutually exclusive events
+
+Example:
+Given the four coin tossing example,
+what is the probability of tossing
+    at least three heads and 
+    at least two tails?
+
+There is no way in which these two events can both happen simultaneously. We say that such events are mutually exclusive, they share no outcomes
+
+with 4 coins
+Throwing 3 heads EXCLUDES the possibility of throwing 2 tails
+
+
+## OR combination
+
+event A: roll an even number: {2, 4, 6}
+event B: roll one of {4, 5}
+
+What is the probability that A OR B occurs
+
+```{r}
+s_two_dice <- rolldie(2)
+s_two_dice %>% 
+  filter(X1%% 2 ==0 | X2 ==5) %>% 
+  summarise(n() / nrow(s_two_dice))
+```
+
+Optional Task - 10 mins
+Let’s check the addition law for ourselves. Calculate probabilities for each event below:
+    first_die_even
+second_die_5
+first_die_even AND second_die_5
+Then use these probabilities in the expression from above
+prob(A∪B)=prob(A)+prob(B)−prob(A∩B)
+and check you get the same probability for prob(first_die_even OR second_die_5)
+as we obtained from the last block of code.
+
+```{r}
+first_die_even %>% 
+  nrow()/nrow(s)
+
+second_die_five <- s %>% 
+  filter(X2 == 5)
+second_die_five %>% 
+  nrow()/nrow(s)
+
+first_even_second_five <- s %>% 
+  filter(X1 %% 2 == 0 & X2 == 5)
+
+first_even_second_five %>% 
+  nrow()/nrow(s)
+
+
+0.5 * 0.1666667
+  
+0.5 + 0.1666667
+```
+
+## Session 4 -- Conditional probability
+
+```{r}
+library(janitor)
+```
+
+```{r}
+cb <- read_csv("colour_blindness.csv")
+```
+
+### Learning outcomes
+
+
+
+Probability of event A given event B
+
+Independence
+
+p(A|B) = p(A) --> independence - because none of the probability of A depends on event B, they are completely independent events. B can't explain any of the variance of A.
+
+
+```{r}
+cb %>% 
+  tabyl(bio_sex, cblind) %>% 
+  adorn_totals(where = c("row", "col"))
+
+cb %>% 
+  tabyl(bio_sex, cblind) %>% 
+  adorn_percentages(denominator = "all") %>% 
+  adorn_title()
+```
+
+```{r}
+prob_female <- cb %>% 
+  summarize(prob = sum(bio_sex == "female") / n())
+
+prob_female
+```
+
+Task - 5 mins
+
+What are the marginal probabilities of:
+
+    being male - 60%
+    being colour blind - 
+    not being colour blind?
+Get these probabilities from the contingency table and also calculate them using pipes
+
+Save each in a sensibly name variable, we'll need it later
+
+```{r}
+prob_male <- cb %>% 
+  summarize(prob = sum(bio_sex == "male") / n())
+
+prob_male
+
+
+cb %>% 
+  tabyl(bio_sex, cblind) %>% 
+  adorn_percentages(denominator = "all") %>% 
+  adorn_totals(where = c("row", "col"))
+
+prob_cb <- cb %>% 
+  summarise(prob = sum(cb == TRUE) / n())
+prob_cb
+
+prob_not_cb <- cb %>% 
+  summarise(prob = sum(cb == FALSE) / n())
+prob_not_cb
+```
+
+
+
+```{r}
+prob_female_cb <- cb %>% 
+  filter(bio_sex == "female", cblind) %>% 
+  summarise(prob = n()/nrow(cb))
+            
+prob_male_cb <- cb %>% 
+  filter(bio_sex == "male", cblind) %>% 
+  summarise(prob = n()/nrow(cb))
+```
+
+
+```{r}
+prob_female * prob_cb
+```
+
+### Conditional probabilities
+
+>What is the probability of a person being colour blind given that we know they are female?
+
+what is the probability of throwing a 5
+p(5)
+What is the probability of throwing a 5, given that we know the number is 0dd
+p(5|odd)
+
+
+
+```{r}
+cb %>% 
+  tabyl(bio_sex, cblind) %>% 
+  adorn_percentages(denominator = "all") %>% 
+  adorn_totals(where = c("row", "col"))
+```
+
+p(cb) = 0.0436
+
+p(cb | female)
+
+> What proportion of female people are colour blind?
+
+```{r}
+prob_cb_given_female <- cb %>% 
+  filter(bio_sex == "female") %>% 
+  summarise(prob = sum(cblind) / n())
+```
+
