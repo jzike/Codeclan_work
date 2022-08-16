@@ -1,0 +1,66 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Learning objectives
+
+- Know how to create a basic Shiny app
+-Understand how to use inputs and outputs to create interactively
+
+## Data
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+olympic_medals <- read_csv("data/olympics_overall_medals.csv")
+```
+
+Jump to - Ctrl + P
+Ctrl + i - reindents when you've messed up the indentation
+Ctrl + a - highlights everything
+
+## Widgets
+
+Needs: ID, Label, choices
+
+```{r}
+widgetInput(inputID = "id",
+            label = "widget label",
+            choices = c("choice A", "choice B", "choice C"))
+```
+
+render function --> output function
+
+
+## Plot
+
+```{r}
+olympic_overall_medals %>%
+  filter(team == "Great Britain",
+         season == "Summer") %>%
+ggplot(aes(x = medal, y = count, fill = medal)) +
+  geom_col()
+```
+
+## Learning Objectives
+
+- Know how to include HTML in a Shiny app
+- Know how to include CSS in a Shiny app
+- Be able to use themes and UI Layouts in Shiny
+
+Using HTML in Shiny
+
+tags$
+HTML()
+
+## Theme-ing packages
+
+"{bslib}" - Bootswatch library
+
+Each row has a width of 12, so the max value a column within that row can take is 12. If you want 4 columns of equal width, for example, you woudl make each 3
+
+There are no spaces between columns in a row, but you can offset them
