@@ -1,0 +1,78 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(infer)
+library(janitor)
+```
+
+```{r}
+ames_houses <- read_csv("ames.csv") %>% clean_names()
+```
+
+
+
+
+# Q1 - We are going to use a dataset on house sales in Ames, Iowa over a number of years. We will be interested in the SalePrice of houses (though we should clean_names() the data, so this will end up as sale_price). Load the data and explore it.
+
+
+
+
+
+```{r}
+skimr::skim(ames_houses)
+```
+
+Q2 - Plot a histogram of sale_price. Is the distribution normal?
+
+```{r}
+options(scipen = 999)
+ames_houses %>% 
+  ggplot(aes(x = sale_price)) + 
+  geom_histogram(col = "white")
+```
+
+# Q3 - Calculate the population parameter mean of sale_price. Store it in a variable, as we’ll need this value later when we check if each CI contains the parameter value or not.
+
+```{r}
+pop_para <- ames_houses %>% 
+  summarise(mean_sale_price = mean(sale_price))
+```
+
+# Q4 - Now we are going to: - take 1000 random samples each of size 100 from sale_price in ames - create a boostrap sampling distribution of mean(sale_price) from each 100-observation sample (use 1000 reps) - calculate the 95% CI for each bootstrap distribution - store the upper and lower bounds of the CI in a tibble called results
+
+Use the infer workflow to generate the bootstrap distributions and CIs. This code will be pretty hard to write. Think about wrapping the sample creation and infer code in a for loop to generate 1000 random samples and CIs. Create an empty results tibble before the loop, and bind_rows() to it every time you generate a new set of CI bounds.
+
+There’s an outline of the code below, and the full solution below that (if you get stuck). Have a go, but don’t spend too long on this, it’s more important to spend your time thinking about CIs!
+
+```{r}
+results <- tibble()
+for(sample_num in 1:1000){
+  this_sample <- ames_houses %>% 
+    rep_sample_n(size = 100, reps = 1) %>% 
+    ungroup() %>% 
+    select(sale_price)
+  
+  this_bootstrap <- this_sample %>% 
+    specify(response = sale_price) %>% 
+    generate(reps = 1000, type = "bootstrap") %>% 
+    calculate(stat = "mean")
+  
+  this_ci <- this_bootstrap %>% 
+    get_ci(level = 0.95, type = "percentile")
+  
+  this_result <- c(
+    sample_num = sample_num,
+    lower = this_ci %>% 
+      pull(lower_ci),
+    upper = this_ci %>% 
+      pull(upper_ci)
+  )
+  results <- results %>% 
+    bind_rows(this_result)
+}
+```
+

@@ -1,0 +1,719 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Distribution
+
+- a list of all the possible outcomes of a random variable along with either
+    - their probability of occuring [probability distribution]
+    - their frequency of occuring [frequency distribution]
+
+a way of communicating how often or how likely something occurs/is to occur
+
+```{r}
+library(tidyverse)
+source("../../Day_1/Probability/prob.R")
+```
+
+```{r}
+tosscoin(1) %>% 
+  mutate(p = 1/n())
+```
+
+```{r}
+s_three_coins <- tosscoin(3)
+s_three_coins_labelled <- s_three_coins %>% 
+  mutate(outcome = str_c(toss1, toss2, toss3, sep = ""),
+         p = 1/n()) 
+```
+
+```{r}
+s_three_coins_labelled %>% 
+  mutate(n_heads = str_count(outcome, "H")) %>% 
+  group_by(n_heads) %>% 
+  summarise(p = sum(p)) %>% 
+  ggplot() +
+  aes(n_heads, p) +
+  geom_col()
+```
+
+Probability distribution ^ 
+We woudl call this a discrete probability districution (finite/countable)
+
+General properties of discrete probability distributions
+
+x-axis = outcomes
+y-axis = probability
+the probabilities must sum to 1
+
+$$
+\sum{p(x)} = 1
+$$
+
+
+
+
+
+## Measures of centrality
+
+  -mean
+  -median
+  -mode
+  
+These are all expressing where the centre of the distribution is.
+They are different measures of the middle of a distribution.
+
+```{r}
+library(janitor)
+library(lubridate)
+```
+```{r}
+air_con_sales <- read_csv("AirConSales.csv")
+```
+
+```{r}
+air_con_clean <- air_con_sales %>% 
+  clean_names() %>% 
+  mutate(date = mdy(date))
+```
+
+For every date, we've got how many air conditioners were sold. We're interested, 
+though, in how often it is to sell a certain number of ACs. 
+
+e.g. how often / how likely is it that on any day we sell 3 ACs?
+
+```{r}
+sales_freqs <- air_con_clean %>% 
+  tabyl(units_sold)
+```
+
+percet here doesn't refer to a probability / percent but a relative requency
+(which is subtley different)
+
+```{r}
+sales_freqs %>% 
+  ggplot() +
+  aes(units_sold, percent) +
+  geom_col()
+```
+
+Mean
+
+- Commonly incorrectly referred to as the average
+
+sum of the values / n o values
+
+$\mu$ = a population
+$\bar{x}$ = a sample
+
+```{r}
+air_con_clean %>% 
+  summarise(mean_daily_sales = mean(units_sold))
+```
+
+Median
+
+middle value if we sorted the values in the list
+
+```{r}
+air_con_clean %>% 
+  summarise(mean_daily_sales = mean(units_sold),
+            median = median(units_sold))
+```
+
+Mode
+- the most commonly occuring value / the most likely value in the data
+
+- sadly there's no stats mode fuction, we need to make our own
+
+
+```{r}
+# let's make our mode function 
+get_mode <- function(data){
+
+  tabled_data <- table(data)
+  table_names <- names(tabled_data)
+  
+  return( table_names[tabled_data == max(tabled_data)] )
+  
+}
+```
+
+```{r}
+air_con_clean %>% 
+  summarise(mean_daily_sales = mean(units_sold),
+            median = median(units_sold),
+            mode = get_mode(units_sold))
+```
+
+We can express skew numerically
+
+```{r}
+library(e1071)
+```
+
+When quantifying skew we can use the following class table
+
+|magnitude | classification |
+| ---------|----------------|
+|<0.5 | fairly symmetric |
+| 0.5 - 1.0 | moderately skewed |
+|> 1.0 | highly skewed |
+
+|direction | classification |
+|----------|----------------|
+|negative | left skew |
+|positive | right skew|
+
+```{r}
+air_con_clean %>% 
+  summarise(
+    skew = skewness(units_sold, type = 1)
+  )
+```
+
+## Measures of spread
+-Range
+-IQR
+-Box plots
+-Variance
+-Standard deviation
+
+What does our distribution look like? How far apart are the values typically?
+Is it a very narrow and tall distribution, or is it more wide and short?
+
+```{r}
+jobs <- read_csv("TyrellCorpJobs.csv") %>% 
+  select(-1) %>% 
+  clean_names()
+```
+
+```{r}
+jobs %>% 
+  summarise(range = diff(range(salary)))
+
+summary(jobs)
+```
+
+Remember to visualise the distribution first before calculating stats!
+
+```{r}
+jobs %>% 
+  ggplot(aes(x = salary))+
+  geom_histogram(col = "white", bins = 25)
+```
+
+
+```{r}
+jobs %>% 
+  ggplot(aes(x = salary))+
+  geom_histogram(col = "white", bins = 25) +
+  facet_wrap(~position)
+```
+
+So there is strong evidence of bimodality. From now on, consider the two 
+distributions (one for each position)
+
+```{r}
+jobs %>% 
+  group_by(position) %>% 
+  summarise(range = diff(range(salary)))
+```
+
+There is more salary disparity in management than in accounting
+
+Range is heavily effected by extreme values (most accounting salaries are 
+between 30 and 40k - the range suggests a spread of 15K (50% more))
+
+Less influenced by outliers is the Interquartile range
+
+Interquartile range
+
+```{r}
+jobs %>% 
+  group_by(position) %>% 
+  summarise(
+    q1 = quantile(salary, 0.25),
+    q2 = quantile(salary, 0.5),
+    q3 = quantile (salary, 0.75),
+    iqr = q3 - q1,
+    iqr_from_stats = IQR(salary)
+  )
+
+
+```
+
+```{r}
+library(skimr)
+```
+
+```{r}
+jobs %>% group_by(position) %>% 
+  skim()
+```
+
+a more graphical view of quartiles: Box plots
+
+```{r}
+jobs %>% 
+  group_by(position) %>% 
+  summarise(
+    q1 = quantile(salary, 0.25),
+    q2 = quantile(salary, 0.5),
+    q3 = quantile (salary, 0.75),
+    iqr = q3 - q1,
+    iqr_from_stats = IQR(salary),
+    outlier_distance = 1.5 * iqr
+  )
+
+
+```
+
+```{r}
+jobs %>% 
+  ggplot() +
+  aes(x = salary, y = position) +
+  geom_boxplot()+
+  geom_jitter() +
+  stat_boxplot(geom = "errorbar", width = 0.5)
+```
+
+Task: 10 mins
+Investigate and comment on the centrality and spreads of distribution_1 and distribution_2 produced by the following function calls.
+Use geom_boxplot() and skim() first
+Next, plot histograms to confirm your descriptions.
+[Don’t worry about what the functions generating distribution_1 and distribution_2 are doing]
+
+```{r}
+set.seed(42)
+distribution_1 <- tibble(
+  y = append(rnorm(n = 100, mean = 5, sd = 10), rnorm(n = 200, mean = 5, sd = 1))
+)
+
+distribution_2 <- tibble(
+  y = runif(n = 1000, min = -30, max = 30)
+)
+```
+
+```{r}
+distribution_1 %>% 
+  ggplot(aes(x = y)) +
+  geom_boxplot(outlier.colour = "red")
+
+distribution_2 %>% 
+  ggplot(aes(x = y)) +
+  geom_boxplot()
+
+
+distribution_1 %>% 
+  ggplot(aes(x = y)) +
+  geom_histogram()
+
+distribution_2 %>% 
+  ggplot(aes(x = y)) +
+  geom_histogram()
+
+distribution_1 %>% 
+  skim()
+
+distribution_2 %>% 
+  skim()
+```
+
+```{r}
+distribution_2 %>% 
+  summarise(skew = skewness(y, type = 1))
+```
+
+```{r}
+heavily_right_skewed <- read_csv("heavily_right_skewed.csv")
+```
+
+```{r}
+heavily_right_skewed %>% 
+  summarise(skew = skewness(x, type = 1))
+```
+
+```{r}
+heavily_right_skewed %>% 
+  ggplot(aes(x)) +
+  geom_boxplot()
+```
+
+```{r}
+heavily_right_skewed %>% 
+  ggplot(aes(x)) +
+  geom_histogram()
+
+heavily_right_skewed %>% 
+  skim()
+```
+
+## Variance
+
+A single number value for a measure of spread
+
+a measure of how far each value in the dataset is from the mean 
+
+
+```{r}
+set.seed(42)
+
+londoner_weights <- tibble(
+  marathoners = rnorm(50, mean = 68, sd = 0.5),
+  commuters = rnorm(50, mean = 68, sd = 5)
+) %>% 
+  pivot_longer(cols = everything(), names_to = "group", values_to = "weight")
+
+ggplot(londoner_weights) +
+  aes(x = weight, y = group) +
+  geom_boxplot()
+
+londoner_weights %>% 
+  group_by(group) %>% 
+  summarise(mean_weight = mean(weight),
+            var_weight = var(weight),
+            sd_weight = sd(weight),
+            sd_weight_long = sqrt(var_weight))
+```
+
+If weight is in KG, variance will be in KG^2
+
+St dev = sqrt(variance), so it is in the same units as whatever is being 
+measured in the column.
+
+Calculating variance longhand
+
+Task - 5 mins
+
+Calculate the variance and standard deviation for the salaries in accounting and management at tyrell corp and comment on the standard deviations
+
+```{r}
+jobs %>% 
+  group_by(position) %>% 
+  summarise(mean_salary = mean(salary),
+            var_salary = var(salary),
+            sd_salary = sd(salary))
+```
+
+The standard deviation for accounting salaries is 2383.68, meaning that on average, salaries in accounting vary by £2383.68 from the mean. The standard deviation for management salaries is 10940.56, meaning that on average, salaries in management vary by £10940.56 from the mean. This means that the spread of management salaries should be wider, whereas accounting salaries will be more clustered around the mean (b/c they don't vary as much.)
+
+
+## Common distributions
+
+LOs
+-Understand the concepts of probability mass function and probability density fuctions
+-Be familiar with some common distribution functions
+-Understand that many things are normally distributed
+  -Know some examples of normally distributed quantities
+-Understand variance and standard deviation for a standard normal distribution
+-Be able to use distributions to canculate parameters of a normal distribution
+-Know about the empirical 3 sigma rule for a normal distribution
+
+Discrete and continuous variables
+
+Numeric data - discrete / continuous
+Categorical data - nominal / ordinal (they have an order)
+
+Discrete - countable and finite
+Continuous - uncountable
+
+Variables
+
+Number of people in my survey who love the colour blue = discrete value
+height of people in Scotland = continuous scale (no point value to represent
+their height)
+
+age - continuous numeric
+age group (child, adult, senior) - ordinal
+number of people in household - discrete
+height - continuous numeric
+weight - continuous numeric
+shoe size (uk) - ordinal
+foot size - continuous numeric
+vegetarian - nominal categoric (binary)
+
+## Probability mass and probability density functions
+
+discrete probability distribution is a probability distribution of a discrete variable
+
+heads or tals, discrete number of outcomes
+
+probability mass function - probability distrubution of a discrete variable
+
+probability density function - probability distribution of a continuous variable
+
+What is the probability of heights in the range from 174.22cm to 178.91cm in the dataset) Based on this data what is the probability that I measure someone's height in the range of 174.22cm to 178.91cm?
+
+In the case of pmf vs pdf, while we can measure probabilities for specific discrete values of a pmf, we can't for a pdf. We look instead at the probability of a range of values.
+
+
+_Rules for discrete probability distributions_
+
+  -outcome is the x axis
+  -y is our probability of that outcome occurring (pmfs)
+  -the sum of all probabilities must be 1
+  -each probability must be between 0 and 1
+  
+_Rules for continuous probability distributions_
+
+  -outcome is the x axis
+  -y is the probability density
+  -the sum of all probabilities must be 1 (the area under the curve defined by the probability density function must be 1)
+  -probabilities are area under the curve -> the probability of a value being within a certain range is the area under the curve from x = lower to x = higher
+  -the probability of a value in the range or x = x_min to x = x_max must be 1
+  
+  
+  Discrete distributions
+  
+  Discrete uniform
+  
+```{r}
+tosscoin(3) %>% 
+  mutate(label = str_c(toss1, toss2, toss3, sep = "")) %>% 
+  mutate(p = 1/n()) %>% 
+  ggplot(aes(label, p))+
+  geom_col()
+```
+  
+There is another way we can explore probability distributions
+
+via Cumulative distribution functions
+
+F(1) = 1/6 = p(1 or less)
+F(2) = 1/6 + 1/6 = p(2 or less)
+
+```{r}
+
+rolldie(1) %>% 
+  mutate(p = 1/n()) %>% 
+  mutate(F_x = cumsum(p)) %>% 
+  ggplot(aes(X1, F_x)) +
+  geom_step()
+```
+
+Getting individual probabilities from cdfs 
+
+p(3) - F(3) - F(2) = 0.5 - 0.333 = 0.666667
+
+
+Continuous distributions
+
+Continuous uniform
+
+length of "brain breaks" at CodeClan were monitored for a week. They were found to be distributed unifomly (equal p for all outcomes) between 5 minutes and 22 minutes.
+
+l is continuous
+
+l could be 7.18233333, it could be 5 minutes, it could be 21.9 minutes
+
+What will the probability density function look like for the random variable l?
+
+useful distribution functions
+
+p - cumulative density function
+q - quantile
+r - random numbers
+d - distribution
+
+rnorm()
+
+```{r}
+brain_breaks <- tibble(
+  length = seq(4, 23, 0.1),
+  f_length = dunif(x = length, min = 5, max = 22)
+)
+
+#probability density function (we're looking at a continuous var)
+brain_breaks %>% 
+  ggplot(aes(x = length, y = f_length)) +
+  geom_line()
+
+
+brain_breaks %>% 
+  mutate(F_length = punif(q = length, min = 5, max = 22)) %>% 
+  ggplot(aes(x = length, y = F_length)) +
+  geom_line()
+```
+
+What is the probability of a brain break lasting between 8.4 and 10.7 minutes?
+
+```{r}
+f_10_7 <- punif(
+  q = 10.7, min = 5, max = 22
+)
+
+f_8_4 <- punif(
+  q = 8.4, min = 5, max = 22
+)
+f_10_7 - f_8_4
+```
+14% chance of seeing a brain break between 8.4 and 10.7 minutes long
+
+What does this look like on our initial plot?
+
+```{r}
+brain_breaks %>% 
+  ggplot(aes(x = length, y = f_length)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = 0, ymax = ifelse(
+    length >= 8.4 & length <= 10.7, f_length, 0
+  )), fill = "red", alpha = 0.6)
+```
+
+```{r}
+(10.7 - 8.4) * max(brain_breaks$f_length)
+```
+
+Normal Distribution
+
+very prevalent in nature
+if you took 1000 measurements of people's head size --> normal distribution
+if you took 1000 measurements of penguin flipper widths --> normal distribution
+
+```{r}
+three_norms <- tibble(
+  x = seq(0, 100, 1),
+  f1_x = dnorm(x = x, mean = 25, sd = 1),
+  f2_x = dnorm(x = x, mean = 25, sd = 5),
+  f3_x = dnorm(x = x, mean = 25, sd = 10)
+)
+
+three_norms %>% 
+  ggplot() +
+  geom_line(aes(x = x, f1_x), col = "red") +
+  geom_line(aes(x = x, f2_x), col = "black") +
+  geom_line(aes(x = x, f3_x), col = "blue") 
+```
+
+Notice that for very small values of x (or very distant from the mean) for a normal distribution these will be non-zero. They'll be extremely small values, but not p = 0
+
+Much of what we see when it comes to inferential stats (tomorrow and thursday) is that taking repeated samples of a population leads to a normal distribution.
+
+As well as physical properties, stock volatilities, travel times.
+
+Quantities tend to be normally distributed when they are composed of smaller randomly distributed properties.
+
+How can we tell if our data is normally distributed?
+qqplot(quantile quantile plots)
+various normality tests
+
+Look at the normal distribution vs our data (fitting a normal distribution to a data set)
+
+Looking at just he accounting department, is the data normally distributed?
+
+```{r}
+accounting_position_stats <- jobs %>% 
+  filter(position == "Accounting") %>% 
+  summarise(
+    num = n(),
+    mean_sal = mean(salary),
+    sd_sal = sd(salary)
+  )
+```
+
+Overlaying a normal distribution
+
+```{r}
+
+# 1. plot the histogram
+# 2. change the metric of the histogram with aes(y = ..density..)
+# 3. use stat function and pre-calculated stats to overlay a normal distribution
+
+jobs %>% 
+  filter(position == "Accounting") %>% 
+  ggplot(aes(x = salary)) +
+  geom_histogram(aes(y = ..density..))+
+  stat_function(
+    fun = ~dnorm(.,mean = accounting_position_stats$mean_sal,
+                 sd = accounting_position_stats$sd_sal)
+    
+  )
+```
+
+```{r}
+shapiro.test(rnorm(100, mean = 5, sd = 3))
+```
+
+"Standard Normal"
+
+scaled so that mean = 0, sd = 1
+
+standardised variable (tool to describe normal distributions)
+
+z = value - mean / sd
+
+Tells us how far away we are from the mean in units of standard deviation
+
+So if z = 1.3, then the value is 1.3 * sd away from the mean value
+z = 3 would be a value 3 * sd away from the mean
+
+This is another definition of an outlier
+
+-a value 1.5*IQR above Q3 or below Q1
+-Any value with a z above or below 3
+
+```{r}
+management_scaled <- jobs %>% 
+  filter(position == "Management") %>% 
+  #scale automatically calculates z scores
+  mutate(z_salary = scale(salary)) %>% 
+  mutate(mean_sal = mean(salary))
+
+management_scaled %>% 
+  filter(abs(z_salary) > 2)
+```
+
+Standard Normal
+
+scaled so that mean = 0, sd = 1
+
+Shading the standard normal (in notes)
+
+```{r}
+# SLACK THIS OUT
+shade_standard_normal <- function(shade_from, shade_to){
+  standard_normal <- tibble(
+    z = seq(from = -4, to = 4, by = 0.001),
+    f_z = dnorm(x = z)
+  )
+  standard_normal %>%
+    ggplot(aes(x = z, y = f_z)) +
+    geom_line() +
+    geom_ribbon(aes(ymin = 0, ymax = ifelse(z >= shade_from & z <= shade_to, f_z, 0)), fill = "red", alpha = 0.6)
+}
+
+shade_standard_normal(shade_from = -Inf, shade_to = 0)
+```
+
+
+The empirical 3-sigma rule
+
+Most values lie within 3 standard deviations of the mean. If using 99% CI
+If using 95% CI, they will lie within 2 standard deviations
+
+Let's calculate how many values should lie within 1 sd of the mean for a standard normal distribution
+
+```{r}
+100 * (pnorm(q = 1) - pnorm(q = -1))
+```
+
+68% of the data should lie within 1 standard deviation of the mean.
+
+```{r}
+100 * (pnorm(q = 2) - pnorm(q = -2))
+```
+95% of the data shoudl lie within 2 standard deviations of the mean
+
+```{r}
+shade_standard_normal(-2, 2)
+```
+
+This is called the empirical 3 sigma rule
+
+For data that is normally distributed we expect 
+
+    68% of values lie within 1 sd of mean
+    95% of values lie within 2 sd of mean
+    99.7% of values lie within 3 sd of mean

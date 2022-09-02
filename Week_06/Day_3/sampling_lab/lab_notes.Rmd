@@ -1,0 +1,89 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Libraries
+
+```{r}
+library(tidyverse)
+library(infer)
+library(janitor)
+```
+
+# MVP
+## Q1 - Load and explore the data held in heart.csv. A data dictionary is also available.
+
+```{r}
+heart_data <- read_csv("data/heart.csv")
+skimr::skim(heart_data)
+```
+
+## Q2 - Plot a histogram and/or boxplot for thalach (maximum heart rate achieved in stress testing). How normal is the distribution?
+
+```{r}
+heart_data %>% 
+  ggplot(aes(x = thalach)) +
+  geom_histogram(col = "white")
+
+
+```
+Q3
+```{r}
+heart_data %>%
+  ggplot(aes(x = exang)) +
+  geom_bar()
+```
+Q4
+```{r}
+pop_parameters <- heart_data %>% 
+  summarise(mean_thalach = mean(thalach),
+            prop_exang = sum(exang == 1)/ n())
+```
+
+
+Q5
+```{r}
+samp_heart_50 <- heart_data %>% 
+  rep_sample_n(50, reps = 1)
+
+summary_samp_50 <- samp_heart_50 %>% 
+  summarise(mean_thalach = mean(thalach),
+            prop_exang = sum(exang == 1)/ n())
+```
+
+Q6
+```{r}
+as.tibble(c(summary_samp_50$mean_thalach - pop_parameters$mean_thalach,
+summary_samp_50$prop_exang - pop_parameters$prop_exang))
+```
+Q7
+```{r}
+rep_sample_50 <- heart_data %>% 
+  rep_sample_n(50, reps = 5000) %>% 
+  summarise(
+    mean_thalach = mean(thalach),
+    prop_exang = sum(exang == 1)/ n()
+  )
+```
+
+
+Q8
+```{r}
+rep_sample_50 %>% 
+  ggplot(aes(x = mean_thalach)) +
+  geom_histogram(col = "white")
+
+rep_sample_50 %>% 
+  ggplot(aes(x = prop_exang)) +
+  geom_histogram(col = "white", binwidth = 0.01)
+```
+
+Q9
+
+```{r}
+rep_sample_50 %>% 
+  summarise(standard_error_mean_thalach = sd(mean_thalach),
+            standard_error_prop_exang = sd(prop_exang))
+```
+

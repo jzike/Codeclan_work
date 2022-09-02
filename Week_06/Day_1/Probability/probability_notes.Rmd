@@ -448,4 +448,3 @@ prob_cb_given_female <- cb %>%
   filter(bio_sex == "female") %>% 
   summarise(prob = sum(cblind) / n())
 ```
-

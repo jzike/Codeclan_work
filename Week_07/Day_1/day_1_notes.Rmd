@@ -1,0 +1,465 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+
+```
+
+##Session 1 -- Using dates and times
+
+## Learning objectives
+
+- Be able to manipulate dates and times in R
+- Understand about time zones
+
+iso 8601 standard - international standard for dealing with dates and times
+
+
+Task - 5 mins - Take a few min and read about ISO 8601 standard, as we will be working with it a lot today. Answer the following questions:
+
+- What order does ISO standard follow
+YYYY-MM-DD
+- What is the minimum number of digits you can have in a year? Why?
+4 digits - to avoid the year 2000 problem (potential computer errors relating to the formatting and storage of calendar data that might come from only storing the final two digits)
+-What clock system do the times use?
+24 hour clock
+- How many time formats does ISO standard have
+4?
+- What timezone are time and dates automatically represented in?
+UTC - Universal coordinated time
+- How are combined date-times represented?
+You use the letter T as a delimiter, e.g. 2007-04-05T14:30
+
+YYY = four digit year
+MM = two digit month
+DD = Two digit day of the month
+hh - two digits of hour in 24 hour time
+mm = two digits of minute
+ss = two digits of seconds
+s - one or more digits 
+TZD
+
+```{r}
+as.Date("2022-08-21")
+```
+
+Dates are represented as integer numbers, so if you unclass them, it will tell you the number of days
+
+```{r}
+date_time1 <- as.POSIXct("2020-01-01 00:00:00")
+date_time1
+```
+
+
+```{r}
+date_time2 <- as.POSIXlt("2020-01-01 00:00:00")
+date_time2
+unclass(date_time2)
+
+date_time2$mday
+```
+
+### Packages
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+Date conversion functions like ymd()
+
+Date-time converting functions
+ymd_hms()
+
+Extracting components
+year()
+wday()
+hour()
+etc.
+
+timespans
+as.period()
+
+
+
+
+
+
+```{r}
+netflix <- read_csv("data/netflix.csv")
+```
+
+Date: "<date>"
+Time: "<time>"
+
+
+```{r}
+"2019-01-19"
+
+ymd("2019-01-19")
+
+mdy("January 9th, 2019")
+
+dmy("9-Jan-2019")
+
+ymd_hms("2019-01-19 10:08:26")
+ymd_hm("2019-01-19 10:08")
+ymd_h("2019-01-19 10")
+```
+Change column date added from character to a date using either dmy mdy or ymd
+
+```{r}
+netflix <- netflix %>% 
+  mutate(date_added = mdy(date_added))
+```
+
+## Extracting individual components
+
+```{r}
+month(netflix$date_added[1:5], label = TRUE, abbr = FALSE)
+
+netflix <- netflix %>% 
+  mutate(day = day(date_added),
+         month = month(date_added, label = TRUE, abbr = FALSE),
+         year = year(date_added)
+         )
+```
+
+Add a column weekday which is the day of the week thhe title was added
+
+```{r}
+netflix <- netflix %>% 
+  mutate(weekday = wday(date_added, label = TRUE))
+```
+ 
+ ## Calculating time spans
+ 
+ Three types of time span
+ 
+ Difftime: a datetime object that represents days 
+ Period: Represent a timespan like week/month/day - a discreet period
+ Duration: represent an exact number of seconds
+ 
+ today() <- gives today's date
+ now() <- gives today's date and the time inc seconds
+ 
+```{r}
+netflix<- netflix %>% 
+  mutate(time_difftime = today() - date_added)
+```
+ 
+```{r}
+netflix <- netflix %>% 
+  mutate(time_period = as.period(today() - date_added),
+         time_years = as.numeric(time_period, "years"),
+         time_hours = as.numeric(time_period, "hours"),
+         time_minutes = as.numeric(time_period, "minutes"),
+         time_seconds = as.numeric(time_period, "seconds"))
+netflix
+```
+ 
+### Subtracting periods from dates
+
+For example, say we found out that Netflix promotes releases on their web app for 2 weeks before the show is released and then takes them down after 4 months
+
+```{r}
+netflix <- netflix %>% 
+  mutate(promo_date = date_added - weeks(2),
+         removal_date = date_added +months(4))
+
+netflix %>% 
+  select(date_added, promo_date, removal_date)
+```
+
+```{r}
+netflix %>% 
+  mutate(time_period = as.period(today() - date_added),
+         weeks = as.numeric(time_period, "weeks"))
+```
+
+Duration: represent an exact number of seconds
+
+```{r}
+netflix <- netflix %>% 
+  mutate(time_duration = as.duration(today() - date_added))
+
+netflix %>% 
+  select(starts_with("time"))
+```
+
+dseconds()
+dminutes()
+dhours()
+ddays()
+dweeks()
+dmonths()
+dyears()
+
+What date is a year after the 10th of January 2020?
+
+Is it:
+
+```{r}
+ymd(20200110) + years(1)
+ymd(20200110) + dyears(1) #adds on 365 days exactly, so one day less b/c of leap year in 2020
+```
+
+## Understanding timezones
+
+```{r}
+OlsonNames()
+
+ymd_hms("2023-09-13 10:22:01", tz = "Atlantic/Faeroe")
+
+
+netflix %>% 
+  mutate(date_tz_1 = force_tz(date_added, tzone = "Asia/Singapore"),
+         date_tz_2 = with_tz(date_added, tzone = "Asia/Singapore")) %>% 
+  select(date_added, date_tz_1, date_tz_2)
+```
+
+What is the difference between the two functions?
+
+force_tz just adds a time zone, it doesn't change the date or time.
+with_tz figures out what the date and time would be if you moved from the current time zone to the one asked for
+
+
+## Session 3 -- Introduction to time series
+
+### Learning objectives
+-Know what time series data looks like
+-Understand some of the key components of time series data
+-See some examples of the application of time series data
+-Understand why familiarity with time series data is important
+
+```{r}
+library(tsibble)
+library(tsibbledata)
+```
+
+"as_tsibble()"
+
+## "tsibble"
+
+__index__: time component
+__Key__  : identifies the underlying structure of the data
+         : in conjuction with the __index__ uniquely identities each individual row
+         
+
+```{r}
+vic_elec
+```
+
+```{r}
+index(vic_elec)
+index_var(vic_elec)
+
+key(vic_elec)
+key_vars(vic_elec)
+
+interval(vic_elec)
+```
+
+```{r}
+vic_elec %>% 
+  select(Time, Demand, Temperature)
+```
+
+```{r}
+vic_elec %>% 
+  filter(!Holiday)
+
+vic_elec %>% 
+  filter(Time < "2012-01-01 01:00:00")
+
+vic_elec %>% 
+  filter(Time < as.POSIXct("2012-01-01 01:00:00", tz = "Australia/Melbourne"))
+
+vic_elec %>% 
+  filter(Time < as.Date("2012-01-02"))
+
+vic_elec %>% 
+  filter_index("2012-01")
+```
+
+
+
+
+```{r}
+vic_elec <- vic_elec %>% 
+  mutate(year = lubridate::year(Date))
+```
+
+```{r}
+vic_elec %>% 
+  select(year, Temperature) %>% 
+  group_by(year) %>% 
+  summarise(mean_temp = mean(Temperature))
+
+vic_elec %>% 
+  select(year, Temperature) %>% 
+  index_by(year) %>% 
+  summarise(mean_temp = mean(Temperature))
+
+vic_elec %>% 
+  mutate(date = as_date(Time), .after = Time)
+
+
+vic_elec %>% 
+  index_by(as_date(Time)) %>% 
+  summarise(mean_temp = mean(Temperature))
+```
+
+## "tsibble" and "ggplot2"
+
+```{r}
+vic_elec %>% 
+  filter(!Holiday) %>% 
+  ggplot() +
+  geom_line(aes(x = Time, y = Temperature))
+```
+Useful for extractign different components of the time series data
+```{r}
+floor_date()
+ceiling_date()
+
+yearweek()
+yearmonth()
+yearquarter()
+```
+
+```{r}
+elec_date <- vic_elec %>% 
+  index_by(date = as_date(Time)) %>% 
+  summarise(temp_mean = mean(Temperature, na.rm = TRUE))
+
+elec_date %>% 
+  ggplot(aes(date, temp_mean)) +
+  geom_line()
+
+elec_month <- vic_elec %>% 
+  index_by(month = month(Time, label = TRUE)) %>% 
+  summarise(temp_mean = mean(Temperature, na.rm = TRUE))
+
+elec_month %>% 
+  ggplot(aes(month, temp_mean)) +
+  geom_point() +
+  geom_line(group = 1)
+```
+
+```{r}
+elec_year <- vic_elec %>%
+  index_by(year = year(Time)) %>%
+  summarise(temp_mean = mean(Temperature, na.rm = TRUE))
+
+elec_year
+
+elec_year %>%
+  ggplot(aes(x = year, y = temp_mean)) +
+  geom_col(fill = "steelblue", alpha = 0.7) + 
+  ylab("Mean Temperature")+ 
+  xlab("year")
+```
+
+
+## Rolling windows
+
+
+```{r}
+library(slider)
+library(feasts)
+```
+
+```{r}
+elec_rolling <- vic_elec %>% 
+  mutate(
+    temp_moving_avg = slide_dbl(
+      .x = Temperature,
+      .f = ~ mean(., na.rm = TRUE),
+      .before = 1000,
+      .after = 1000,
+      .complete = TRUE
+    ),
+    temp_mvn_avg_1c = slide_dbl(
+      .x = Temperature,
+      .f = ~ mean(., na.rm = TRUE),
+      .before = 100,
+      .after = 100
+    ),
+    temp_mvn_avg_comp = slide_dbl(
+       .x = Temperature,
+      .f = ~ mean(., na.rm = TRUE),
+      .before = 2000,
+      .after = 2000,
+      .complete = FALSE
+    )
+  )
+
+ggplot(elec_rolling) +
+  geom_line(aes(Date, Temperature), colour = "grey") +
+geom_line(aes(Date, temp_moving_avg), colour = "red") +
+geom_line(aes(Date, temp_mvn_avg_1c), colour = "blue") +
+geom_line(aes(Date, temp_mvn_avg_comp), colour = "cyan")
+```
+
+```{r}
+ggplot(elec_rolling) +
+  geom_line(aes(x = Date,
+                y = Temperature), colour = "grey") +
+  geom_line(aes(x = Date,
+                y = temp_moving_avg), colour = "red")
+
+
+```
+
+
+## "feasts"
+
+
+```{r}
+tourism
+
+index_var(tourism)
+key_vars(tourism)
+
+
+tourism %>% 
+  distinct(Purpose)
+
+tourism %>% 
+  distinct(State)
+
+tourism %>% 
+  distinct(Region)
+
+tourism %>% 
+  distinct(State, Region, Purpose)
+```
+
+```{r}
+holidays <- tourism %>% 
+  filter(Purpose %in% c("Holiday", "Business")) %>% 
+  group_by(State) %>% 
+  summarise(Trips = sum(Trips))
+
+holidays
+
+holidays %>% 
+autoplot(Trips) +
+  xlab("Year")
+```
+
+```{r}
+holidays %>% 
+  filter(State %in% c("Queensland", "New South Wales", "Victoria")) %>% 
+  gg_season(Trips)
+```
+
+```{r}
+holidays %>% 
+  filter(State %in% c("Queensland", "New South Wales", "Victoria")) %>% 
+  gg_subseries(Trips)
+```
+
+Do the hard work for your audience
+And make it nice for the audience

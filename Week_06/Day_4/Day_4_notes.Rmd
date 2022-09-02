@@ -1,0 +1,486 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Libraries
+
+```{r}
+library(tidyverse)
+library(infer)
+library(janitor)
+```
+
+```{r}
+books <- read_csv("data/books.csv")
+
+books_tidy <- books %>%
+  clean_names() %>%
+  filter(!is.na(average_rating)) %>%
+  rename(num_pages = number_num_pages) %>%
+  glimpse()
+```
+
+```{r}
+books_tidy %>% 
+  ggplot(aes(x = average_rating)) +
+  geom_histogram(col = "white")
+
+books_tidy %>% 
+  ggplot(aes(x = average_rating)) +
+  geom_jitter(aes(y = 0, height = .2)) +
+  geom_boxplot(colour = 2)
+```
+
+
+
+The data we have is from 2020 GoodReads database - we are going to test to see if the 2020 average is different from the 2016 average
+
+```{r}
+# 2020 mean rating is 3.937568
+mean(books$average_rating, na.rm = TRUE)
+```
+
+The 2016 average is 3.93
+
+Set up two competing hypotheses
+Null hypothesis (H0)
+Is framed as the skeptical position ... is the hypothesis of 
+  -no difference
+  -no change
+  -things are the same
+
+
+Alternative hypothesis (H1)
+the hypothesis of difference
+
+
+Null hypothesis
+The average rating from 2020 is not different from the average rating from 2016
+
+Alternative hypothesis
+The average rating from 2020 is different from the average rating from 2016
+
+
+Our 2 hypotheses must be 
+  -mutually exclusive
+  -exhaustive
+  
+  $$
+  H_0 : \mu_{average \ rating} = 3.393
+  $$
+  
+  $$
+  H_1 : \mu_{average\ rating} \neq 3.93
+  $$
+  
+  $$
+  \mu = popluation\ mean \\\\\\\
+  \pi= population \ proportion \\\\\\\
+  \sigma = population \ standard deviation
+  $$
+
+
+
+
+  
+```{r}
+observed_stat <- mean(books$average_rating, na.rm = TRUE)
+```
+  
+  Is this _significantly_ different from 2016s 3.93
+  
+  Steps of hypothesis test
+  
+  1) Before we look at the data
+      - decide on the significance level (alpha level): set the threshold for what counts as significant
+      - set the error rate - it will dictate how often we wrongly declare significance
+      - by convention, at least very often, the most common alpha level is 0.05
+      - so with alpha 0.05, we can expect to wrongly reject the null hypothesis 1 time in 20
+  2) Calculate the statistic from the sample
+      - in this case, it's the mean
+  3) Create the sampling distribution - we'll do this by bootstrapping
+      - _very_important_ - when we create the sampling distribution, we assume that it is TRUE
+  4) Compare the calculated statistic with the sampling distribution
+      - If the calculated stat is far enough into the tail or our null distribution ... we call it significant
+      - _p-value_
+  5) Decide whether to reject the null hypothesis
+      - If the p value is less than our alpha, we reject the null hypothesis.
+          -We find evidence in support of H1
+      - If the p value is more than our alpha, we fail to reject the null hypothesis
+          -We didn't find evidence in support of H1
+          
+```{r}
+null_distribution <- books_tidy %>%
+  specify(response = average_rating) %>%
+  hypothesise(null = "point", mu = 3.93) %>% 
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+```
+          
+```{r}
+null_distribution %>% 
+  visualise(bins =20) +
+  shade_p_value(obs_stat = observed_stat, direction = "both")
+```
+          
+```{r}
+p_value <- null_distribution %>% 
+  get_p_value(obs_stat = observed_stat, direction = "both")
+```
+What does the p value mean?
+> How likely is it to see a result as extreme as your observed result, if the null hypothesis is true?
+> If the null was true, how weird would this data be?
+
+_Don't say_
+The p value is the probability that H0 is correct - it doesn't mean that!
+
+
+
+Our observed stat of 3.9376 is significantly different from our null stat of 3.93, at an alpha level of 0.05, we therefore find evidence in support of our alternative hypothesis
+
+## Session 2 -- One sample hypothesis tests - proportions
+
+### Learning objectives
+
+- Perform a one sample hypothesis test for proportion using computational methods
+- Interpret results of a one-sample hypothesis test for proportion using computational methods
+
+> Question 
+
+"Does the proportion of books in the Goodreads database that lack text reviews differ significantly from 7%?"
+
+```{r}
+books_tidy %>% 
+  group_by(text_reviews_count) %>% 
+  summarise(prop = n()/nrow(books_tidy)) %>% 
+  filter(text_reviews_count == 0)
+```
+
+
+Null hypothesis
+The proportion of books that lack text reviews is not different from 7%
+
+Alternative hypothesis
+The proportion of books that lack text reviews is different from 7%
+
+
+Our 2 hypotheses must be 
+  -mutually exclusive
+  -exhaustive
+  
+  $$
+  H_0 : \pi_{no \ reviews} = 7%
+  $$
+  
+  $$
+  H_1 : \pi_{no\ reviews} \neq 7%
+  $$
+  
+  
+  
+  
+  Steps of hypothesis test
+  
+  1) Before we look at the data
+      - decide on the significance level (alpha level): set the threshold for what counts as significant
+      - set the error rate - it will dictate how often we wrongly declare significance
+      - by convention, at least very often, the most common alpha level is 0.05
+      - so with alpha 0.05, we can expect to wrongly reject the null hypothesis 1 time in 20
+  2) Calculate the statistic from the sample
+      - in this case, it's the proportion
+$$
+\frac{number\ of\ books\ with\ no\ text\ review}{total\ number\ of\ books}
+$$
+
+
+
+  3) Create the sampling distribution - we'll do this by bootstrapping
+      - _very_important_ - when we create the sampling distribution, we assume that it is TRUE
+  4) Compare the calculated statistic with the sampling distribution
+      - If the calculated stat is far enough into the tail or our null distribution ... we call it significant
+      - _p-value_
+  5) Decide whether to reject the null hypothesis
+      - If the p value is less than our alpha, we reject the null hypothesis.
+          -We find evidence in support of H1
+      - If the p value is more than our alpha, we fail to reject the null hypothesis
+          -We didn't find evidence in support of H1
+          
+
+
+```{r}
+books_tidy_prop <- books_tidy %>% 
+  mutate(has_review = text_reviews_count == 0)
+
+mean(books_tidy_prop$has_review)
+```
+
+```{r}
+null_distribution <- books_tidy_prop %>% 
+  specify(response = has_review, success = "FALSE") %>% 
+  hypothesise(null = "point", p = 0.07) %>% 
+  generate(reps = 1000, type = "draw") %>% 
+  calculate(stat = "prop")
+```
+
+```{r}
+observed_stat <- books_tidy_prop %>% 
+  specify(response = has_review, success = "FALSE") %>% 
+  calculate(stat = "prop")
+
+observed_stat
+
+null_distribution %>% 
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat$stat, direction = "both")
+```
+
+```{r}
+p_value <- null_distribution %>% 
+  get_p_value(obs_stat = observed_stat, direction = "both")
+```
+
+Since the p value is less than alpha, we can reject the null hypothesis
+
+The most common alpha is 0.05
+Psych - usually uses 0.1
+Other fields use 0.01
+
+
+The observed statistic of 0.06456 is significantly different from the null statistic of 0.07 at an alpha level of 0.05, so we therefore find evidence in support of the alternative hypothesis.
+Our observed stat of 3.9376 is significantly different from our null stat of 3.93, at an alpha level of 0.05, we therefore find evidence in support of our alternative hypothesis
+
+## Session 3 - Two sample hypothesis tests
+
+### Learning Objectives
+
+- Know the difference between independent and paired two-sample tests. 
+-Be able to use computational methods to perform and interpret
+  -a paired two sample hypothesis test
+  -an independent two-sample hypothesis test
+  -a proportion two-sample hypothesis test
+  
+  ### Data
+  
+```{r}
+nice <- read_csv("data/nice.csv")
+algarve <- read_csv("data/algarve.csv")
+corfu <- read_csv("data/corfu.csv")
+florence <- read_csv("data/florence.csv")
+```
+  
+### Independent samples
+
+Remember independent means the observations are not associated with each other
+
+H0 - There is no difference in the mean prices for a 2 - bedroom, 14 day holiday apartment let in Nice and the Algarve
+
+H1 - The mean price for a 2-bedroom, 14 day holiday apartment let in the Algarve is higher than the mean price for a 2-bedroom, 14 day holiday apartment let in Nice
+
+```{r}
+apart_prices <- bind_rows(nice = nice,
+                          algarve = algarve,
+                          .id = "location")
+
+apart_prices
+```
+
+```{r}
+apart_prices %>% 
+  ggplot(aes(x = location,
+             y = price)) +
+  geom_boxplot(outlier.color = "red") +
+  geom_jitter(width = .2, colour = 4)
+```
+
+```{r}
+null_distribution <- apart_prices %>% 
+  #specify(response = price, explanatory = location)
+  specify(price ~ location) %>% 
+  hypothesise(null = "independence") %>% 
+  generate(reps = 5000, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("algarve", "nice"))
+```
+
+```{r}
+observed_stat <- apart_prices %>% 
+  specify(price ~ location) %>% 
+  calculate(stat = "diff in means", order = c("algarve", "nice"))
+```
+
+```{r}
+null_distribution %>% 
+  visualise() +
+  shade_p_value(obs_stat = observed_stat, direction = "right")
+```
+
+```{r}
+p_value <- null_distribution %>% 
+  get_p_value(obs_stat = observed_stat, direction = "right")
+
+options(scipen = 999)
+
+p_value
+```
+H0 Price Florence = Corfu
+H1 Price Florence < Corfu
+
+
+```{r}
+apart_prices_cor_flo <- bind_rows(corfu = corfu,
+                                  florence = florence,
+                                  .id = "location")
+```
+
+```{r}
+apart_prices_cor_flo %>% 
+  ggplot(aes(x = location,
+             y = price)) +
+  geom_boxplot(outlier.color = "red") +
+  geom_jitter(width = .2, colour = 4)
+```
+
+```{r}
+null_distribution <- apart_prices_cor_flo %>% 
+  #specify(response = price, explanatory = location)
+  specify(price ~ location) %>% 
+  hypothesise(null = "independence") %>% 
+  generate(reps = 5000, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("florence", "corfu"))
+```
+
+```{r}
+observed_stat <- apart_prices_cor_flo %>% 
+  specify(price ~ location) %>% 
+  calculate(stat = "diff in means", order = c("florence", "corfu"))
+```
+
+```{r}
+null_distribution %>% 
+  visualise() +
+  shade_p_value(obs_stat = observed_stat, direction = "left")
+```
+
+```{r}
+p_value <- null_distribution %>% 
+  get_p_value(obs_stat = observed_stat, direction = "left")
+
+options(scipen = 999)
+
+p_value
+```
+
+price for new texts in campus bookstore = price for new texts on Amazon
+price for new texts in campus bookstore != price for new texts on Amazon
+
+0.05 or 95% CI
+
+```{r}
+textbooks <- read_csv("data/ucla_textbooks_f18.csv")
+```
+
+```{r}
+books_diff <- textbooks %>%
+  mutate(diff_new = bookstore_new - amazon_new) %>%
+  filter(!is.na(diff_new))
+
+books_diff %>%
+  ggplot(aes(x = diff_new)) +
+  geom_histogram()
+```
+naked stats
+Ucal      10
+Amazon    12
+
+```{r}
+null_distribution <- books_diff %>% 
+  specify(response = diff_new) %>% 
+  hypothesise(null = "point", mu = 0) %>% 
+  generate(reps = 1000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+observed_stat <- books_diff %>% 
+  specify(response = diff_new) %>% 
+  calculate(stat = "mean")
+
+null_distribution %>% 
+  visualise() +
+  shade_p_value(observed_stat, direction = "both")
+
+null_distribution %>% 
+  get_p_value(observed_stat, direction = "both")
+```
+
+This study suggests that the prices in the ucal book shop are significantly different from teh prices on Amazon on average (p = 0.05)
+
+
+
+Task 10 min
+
+Frame and perform a paired hypothesis test to answer the following question:
+
+On average are the prices of the used course texts lower on amazon than at the campus bookstore
+
+H0 - price for used texts in campus bookstore = price for used texts on Amazon
+H1 - price for used texts on Amazon < price for used texts on campus
+
+```{r}
+books_diff_used <- textbooks %>%
+  mutate(diff_used = bookstore_used - amazon_used) %>%
+  filter(!is.na(diff_used))
+
+books_diff_used %>%
+  ggplot(aes(x = diff_used)) +
+  geom_boxplot()
+```
+
+```{r}
+null_distribution <- books_diff_used %>% 
+  specify(response = diff_used) %>% 
+  hypothesise(null = "point", mu = 0) %>% 
+  generate(reps = 5000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+observed_stat <- books_diff_used %>% 
+  specify(response = diff_used) %>% 
+  calculate(stat = "mean")
+
+null_distribution %>% 
+  visualise() +
+  shade_p_value(observed_stat, direction = "right")
+
+null_distribution %>% 
+  get_p_value(observed_stat, direction = "right")
+```
+
+
+
+
+
+## Infer procedure
+1. Calculate the _observed_ statistic
+    i. Create _“flag”_ column if necessary
+    ii. Specify the _response_ variable
+    iii. Calculate the required _stat_
+e.g. prop / mean
+2. Generate the _null distribution_
+    i. Specify the _response_
+    ii. Indicate the _hypothesis_
+What type of hypothesis (e.g. point)
+Specify the proportion p (the observed stat)
+    iii. Generate the _null distribution_
+    iv. Calculate the _stat_ of interest
+3. _Visualize_ the resut
+Shade p-value region
+4. Extract the _p-value_
+
+
+```{r}
+p_mean <- 100 #we know that the mean of the pop is def 100
+
+s <- rnorm(100, 101, sd = 2)
+
+#Is the mean of the sample different from the mean of the pop
+t.test(s, mu = p_mean)
+```
+
