@@ -1,0 +1,633 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Libraries
+
+```{r}
+library(tidyverse)
+library(fastDummies)
+library(mosaicData)
+library(mosaic)
+```
+
+
+Supervised vs unsupervised models
+
+Supervised
+Unsupervised
+
+What outcome do they want from the model?
+
+# Variable Engineering
+
+What can we do to columns in a dataset that make them better for modelling?
+
+I want to make a model but...
+My data has missing values - we might impute them if appropriate, but might drop them if inappropriate
+My data has a couple of serious outliers - we'd need to justify dropping them
+My data is hightly-right skewed - we'd transform the variable e.g. using log
+My data is categorical - we'd encode using dummy variables
+My data has too many unique values - we'd group them together in bins to reduce granularity
+My data doesn't have the best predictors - we'd derive better ones
+My data has variables that are measured in different units - we'd consider scaling
+
+Garbage in --> Garbage out
+Less garbage in --> less garbage out
+
+## Missing values
+
+- keep (may not be an option for some modelling)
+- drop
+- impute (replace with something meaningful)
+
+
+```{r}
+#load data
+grades <- read_csv("data/grades.csv") %>% janitor::clean_names()
+```
+
+```{r}
+#look for missing values
+summary(grades)
+```
+
+```{r}
+grades <- grades %>% 
+  mutate(across(where(is.double), ~coalesce(.x, mean(.x, na.rm = TRUE))))
+```
+
+Imputing missing values can be valuable for modelling as it:
+-retains the information from other predictors
+-doesn't 'throw off' the regression too much if we use 'sensible' values to impute with
+
+
+
+## Dealing with outliers
+
+- doen't be hasty to drop data that looks like it doesn't fit in with the rest and be sure to justify the removal of outliers.
+
+## Transformations
+
+- China and India have massive populations, so when plotting all the countries and colouring in based on population, we only saw two groups. 
+
+When we've got very skewed data, one strategy is to transform the variable:
+-usually this means using the variable itself. (e.g. multiplying it by itself)
+-We can reduce the effect of skew by taking exponents or logs for left/right skew
+-can also square or sqrt
+
+e.g. 
+before: gdp = -9 * population + 90
+after: gdp = 2.3 * log(population) + 90 
+
+a way to convert non-linear relationships into linear relationships
+-a common one is to take logs of prices/financial data which tends to be right-skewed
+
+
+## Categorical data in a model
+
+-Convert into a wide format where each categorical level is a variable
+(we turn them into switches) - if maths is switched on, what will the final grade be?
+                             - if english is switched on, what will the final grade be?
+                             (parallel slopes model)
+
+```{r}
+#for reference, we woudln't actually do this
+grades_dummy <- grades %>% 
+  mutate(
+    english = if_else(subject == "english", 1, 0),
+     maths = if_else(subject == "maths", 1, 0),
+     physics = if_else(subject == "physics", 1, 0),
+     french = if_else(subject == "french", 1, 0),
+     biology = if_else(subject == "biology", 1, 0)
+    ) %>% 
+  select(-subject)
+
+grades_dummy
+```
+
+If maths, physics, french, and biology are 0, we know english must be 1
+
+Dummy variable trap - we don't want to have the same information in our model twice.
+
+variable that should have a 'weight' of 1, a weight of 2
+
+multicollinearity - having a copy of a variable in a model
+
+So having both temperature in celsius and temperature in fahrenheight in a model
+
+ice_cream = slope * temperature, slope * avg_temperature_fahrenheit + intercept
+
+How we'd actually do dummy variables:
+1. In R, we woudln't. (R does dummies automatically when using 'lm' or 'glm' ...)
+2. If we had to, we'd use a package:
+
+```{r}
+grades_dummies <- grades %>% 
+  fastDummies::dummy_cols(
+    select_columns = "subject",
+    remove_first_dummy = TRUE, #to avoid the multicollinearity/dummy variable trap
+    remove_selected_columns = TRUE
+  )
+grades_dummies
+```
+
+#### We might want to group together low frequency categories
+
+```{r}
+grades %>% 
+  mutate(subject = if_else(subject %in% c("maths", "physics"), subject, "other"))
+```
+
+
+## Binning data
+
+Sometimes, it's useful to group together continuous predictors
+
+```{r}
+length(unique(grades$midterm))
+
+grades %>% 
+  distinct(midterm) %>% 
+  nrow()
+```
+
+-> grade category (the letter grade)
+
+\> 70 = A
+\> 60 = B
+\> 50 = C
+
+```{r}
+grades %>% 
+  mutate(letter_grade = case_when(
+    midterm >= 70 ~ "A",
+    midterm >= 60 ~ "B",
+    midterm >= 50 ~ "C",
+    TRUE ~ "F"
+  ))
+
+#then we would dummy these as well
+```
+
+Sometimes we want to reduce the granularity. In these cases, we'd group together observations into bins
+
+-count() to determine how many observations for each category in a categorical variable
+-histograms of continuous variables
+-correlations of continuous variables
+-boxplots of categorical variables
+
+'ggpairs()'
+
+
+
+## Deriving variables
+
+We call the initial data variables when we load them in: raw variables
+
+any columns we create are 'derived variables' - these can be very useful.
+
+```{r}
+iris %>% 
+  mutate(petal_ratio = Petal.Length/Petal.Width)
+```
+
+
+
+
+## Scaling variables
+
+Models don't care about the units. 
+
+For example: on two different scales
+gdp = 1 * pop(m) + 50
+gdp = 1000 * pop(100k) + 50
+
+55 pop = 55 million people
+
+so when we get very large values 20000 vs 2. OUr model doesnt' account for context, it only cares about the values - so we need to know the measurement scale.
+
+To bring our values onto a similar scale, we could scale them 
+- standardisation (follows a standard normal distribution (mean 0, sd 1))
+- normalisation (follows a normal distribution)
+
+This isn't particularly model-breaking for linear regression (just changes the interpretation), but can be for other models.
+
+Our baseline
+our predictor is 0, this is our response. 
+
+When standardised
+our predictor is at its mean, this is our response
+
+```{r}
+library(ggfortify)
+
+model_baseline <- lm(final ~ ., grades)
+
+autoplot(model_baseline)
+
+grades_scaled <- grades %>% 
+  mutate(across(where(is.numeric), scale))
+
+model_scaled <- lm(final ~ ., grades_scaled)
+
+autoplot(model_scaled)
+```
+
+```{r}
+summary(model_baseline)
+```
+
+final_grade = ... + 0.7 + (0.6 * midterm result)
+
+```{r}
+summary(model_scaled)
+```
+final_grade = ... + 0.4 + (0.6 * midterm result)
+
+The model hasn't really changed, but our interpretation has been shifted though
+
+# Multiple linear regression
+
+## What's different
+
+y = mx + c
+
+--
+
+y = m1x1 + m2x2 + m3x3 + c
+
+- rather than explaining the variation of y with one predictor (x), we're going to allow for multiple predictors(X).
+
+## The Plan
+
+-Understand the business question
+-Build a simple linear model
+-add in another predictor
+  -categorical predictor (the parallel slopes model)
+-add in another predictor
+  -continuous predictor
+-look at interactions
+
+## Data
+
+```{r}
+RailTrail <- RailTrail
+```
+
+```{r}
+head(RailTrail)
+```
+
+Volume of users of a rail trail
+
+## Question: Can we explain the variation in 'bolume' using other predictors
+
+Candidate variables:
+-temp (F)
+-season
+-cloudcover (0 to 10)
+-precip (inches)
+-weekday (logical)
+
+There are some issues with data (in it's raw form):
+-spring: fall are numbers rather than logical TRUE/FALSE
+-some collinear predictors (we want predictors to be independent)
+  -temps
+  -weekday/day type
+  -spring/summer/fall
+  -season
+  
+## Variable Engineering
+-drop collinear columns
+-convert column types
+-clean up the column names
+
+```{r}
+railtrail_trim <- RailTrail %>% 
+  janitor::clean_names() %>% 
+  mutate(across(spring:fall, as.logical)) %>% 
+  select(-c(lowtemp, hightemp, fall, day_type))
+
+head(railtrail_trim)
+```
+
+### Detect Perfect Collinearity (column aliases)
+
+```{r}
+#this will tell you whether you have any columns that are perfect matches - the original one has a few
+alias(volume ~ ., RailTrail)
+```
+
+```{r}
+#the trimmed dataset doesn't have any
+alias(volume ~ ., railtrail_trim)
+```
+
+Pairs plot - a tool for examining predictors
+Plots every variable against one another
+1. correlations
+2. distribution of each - boxplots (boxes to be different for different categorical levels)
+3. scatter plots (any discernable pattern)
+
+```{r}
+library(GGally)
+
+ggpairs(railtrail_trim)
+```
+
+Avg temperature has the highest correlation, so let's start with that.
+
+y = intercept + m_avg_temp * avg_temp
+
+```{r}
+railtrail_trim %>% 
+  ggplot(aes(avgtemp, volume))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+There does appear to be a linear relationship between volume and avg temp (as temp increases, so does the volume of users on the rail trail)
+
+## Goodness of fit metrics
+
+- $r^2$: coefficient of determination (1 = perfect, 0 = perfectly imperfect)
+
+- standard error in the residuals - how far are the residuals from the line / how far on avg do the fitted values differ from the measured values? (same units as y - so since volume is measured in people, so is the standard error)
+
+```{r}
+model <- lm(volume ~ avgtemp, railtrail_trim)
+```
+
+```{r}
+summary(model)
+```
+
+## Diagnostic Plots!
+
+```{r}
+autoplot(model)
+```
+
+Check the regression assumptions. How well does this simple model perform in predicting volume?
+
+mild heteroscedasticity - slight indication of a wedge shape
+
+0.18 of the variation in volume is explained by avg temp (not much)
+
+Residual standard error is high (over 100 for measurements that only go up to 500)
+
+How can we improve the model?
+- Add more predictors
+
+Because David said it might work...
+throw in weekday
+
+
+
+## Adding a categorical predictor
+
+```{r}
+railtrail_trim %>% 
+  ggplot(aes(weekday, volume))+
+  geom_boxplot() +
+  geom_jitter()
+```
+
+```{r}
+railtrail_trim %>% 
+  summarise(cor = cor(weekday, volume))
+```
+
+Some evidence that volume and weekday are related (there is a dependency)
+
+y = intercept + (b_average_temp * avg temp) + (b_weekday * weekday)
+
+```{r}
+#patsy notation
+formula <- volume ~ avgtemp + weekday
+model_temp_wday <- lm(formula, railtrail_trim)
+```
+
+```{r}
+autoplot(model_temp_wday)
+```
+
+```{r}
+summary(model_temp_wday)
+```
+
+Slight improvement on r2: Our model including avgtemp and weekday can explain 0.2476 of the total variation of volume
+
+Also reduction in standard error
+
+HOw should we interpret the value of the coeeficient for weekday TRUE?
+On weekdays, we would expect to see, on average, 70 fewer trail users compared to weekends (holding avgtemp constant)
+
+```{r}
+model_temp_wday <- lm(volume ~ avgtemp + weekday, railtrail_trim)
+plotModel(model_temp_wday)
+```
+
+Why are there two lines:
+ 2 conditions (2 category levels for weekday - TRUE or FALSE)
+ if we had 7 category levels, we'd get 7 * 2 lines - TRUE or FALSE for each
+ 
+ volume = intercept + (b_avg_temp * avgtemp) + (b_weekday * weekday)
+ 
+ when weekday is FALSE
+ 
+ y = intercept
+ 
+ volume = intercept + (b_avg_temp * avgtemp)
+ 
+## Task - 5 min
+ 
+ try adding the summer categorical prodictor to the existing model with avg temp and weekday
+ 
+ How many lines do you expect to see in the model
+ 
+```{r}
+model_temp_wday_summer <- lm(volume ~ avgtemp + weekday + summer, railtrail_trim)
+autoplot(model_temp_wday_summer)
+summary(model_temp_wday_summer)
+plotModel(model_temp_wday_summer)
+```
+ 
+ We're not going to include summer (at this point) - b/c it isn't statistically significant
+ 
+```{r}
+#is this just because summer and avgtemp are highly correlated??
+railtrail_trim %>% summarise(cor(summer, avgtemp))
+```
+ 
+## Interactions
+
+Sometimes there will be a dependency between your 'independent' predictors. 
+
+Back to our second model: with avgtemp and weekday
+
+```{r}
+railtrail_trim %>% 
+  ggplot(aes(x = avgtemp, y = volume, colour = weekday)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+The lines of best fit are different for avgtemp vs volume for the different weekday levels
+
+volume ~ avgtemp + weekday + avgtemp:weekday
+
+volume depends on avg temp, weekday, and the dependency of avgtemp on a weekday
+
+It depends...
+what does an increase in avg temp have on volume?
+It depends on whether its a weekday or not.
+
+```{r}
+model_temp_wday_interTW <- lm(volume ~ avgtemp + weekday +
+                                avgtemp:weekday,
+                              railtrail_trim)
+
+summary(model_temp_wday_interTW)
+```
+
+Can read the ':' as "interacting with"
+
+```{r}
+plotModel(model_temp_wday_interTW)
+```
+
+If weekday is true:
+volume = 285 + 2 * avgtemp - 262 + 3.3 * avgtemp
+
+```{r}
+285.8 + 2.5 * 50 - 262 + 3.3 * 50
+```
+
+If weekday is false
+
+intercept + b_avgtemp * avgtemp
+
+```{r}
+285.8 + 2.5 * 50
+```
+(forgetting about our continuous and categorical interaction for the moment)
+
+
+## Multiple continuous variables
+
+Add cloudcover to our model
+
+volume = b_avgtemp * avgtemp + b_weekday * weekday + b_cloudcover * cloudcover
+
+```{r}
+model3_terms <- lm(volume ~ avgtemp + weekday + cloudcover,
+                   data = railtrail_trim)
+
+autoplot(model3_terms)
+```
+
+```{r}
+summary(model3_terms)
+```
+
+A bit more progress
+r2 shows that the model with avgtemp, weekday and cloudcover explains 40% of the variation in volume of trail users.
+
+SE has reduced to 100 users.
+
+Interpreting our results:
+
+For a 1 degree increase in temperature, we expect 5.2 more users in volume on the trail (holding all other variables constant).
+
+For a 40 degree, 5 cloudy weekday, we expect:
+
+```{r}
+200 - 48 + 5.25 * 40 + 5 * (-16)
+```
+282 users
+
+### Task - 5 min
+
+Add precip (daily precipitation in inches) into the regression model. Perform diagnostics, and if you find that precip is a significant predictor, interpret its fitted coefficient.
+
+```{r}
+model4_terms <- lm(volume ~ avgtemp + weekday + cloudcover + precip,
+                   data = railtrail_trim)
+
+autoplot(model4_terms)
+
+summary(model4_terms)
+```
+For each 1 inch increase in precipitation, we would expect to see 117 fewer trail users (holding all other variables constant)
+
+
+
+## Interactions between continuous predictors
+
+Incorporate the interaction between avgtemp and precip
+
+volume on the railtrail is dependent on avgtemp, but that relationship might change due to whether its raining or not.
+
+```{r}
+model_4_terms_with_interaction <- 
+  lm(volume ~ avgtemp + weekday + cloudcover + precip + 
+       avgtemp:precip,
+     data = railtrail_trim)
+
+autoplot(model_4_terms_with_interaction)
+
+summary(model_4_terms_with_interaction)
+```
+
+Actually, adding in this interaction has reduced the significance of some terms in our model. 
+
+```{r}
+avgtemp <- 40
+cloudcover <- 5
+precip <- c(0, 0.5, 1)
+weekday <- TRUE
+
+volume_estimate <- 154 + 5.8 * avgtemp + (-46 * weekday) + (-12 * cloudcover) + 
+  (-101 * precip) + (-0.2 * avgtemp * precip)
+```
+
+
+Check interaction plots to see if there is an effect.
+
+```{r}
+
+ggplot(railtrail_trim, aes(avgtemp, volume, colour = weekday)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+coplot(volume ~ avgtemp | precip, data = railtrail_trim, rows = 1,
+       panel = function(x, y, ...){
+         points(x, y)
+         abline(lm(y ~ x), col = "red")
+       })
+```
+
+The relationship between volume and avg temperature is the same for every level of precipitation
+It is not likely that there is a significant interaction between avgtemp and precipitation
+
+```{r}
+railtrail_trim %>% summarise(cor(precip, avgtemp))
+```
+
+```{r}
+library(modelr)
+#another tool for model assessment
+railtrail_trim %>% 
+  add_predictions(model = model4_terms)
+```
+
+```{r}
+coefs <- model4_terms$coefficients
+prediction <- coefs['(Intercept)'] + coefs['avgtemp'] * avgtemp
+```
+

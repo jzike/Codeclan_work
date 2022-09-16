@@ -1,0 +1,533 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Corrlation
+
+What is correlation - relationship between two variables (positive or negative correlation)
+Both variables need to be ordered in some way
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(modelr)
+library(broom)
+library(ggfortify)
+```
+
+```{r}
+mtcars %>% 
+  select(wt, mpg) %>% 
+  glimpse()
+```
+
+```{r}
+mtcars %>% 
+  ggplot(aes(x = wt,
+             y = mpg))+
+  geom_point() +
+  geom_point(aes(x = mean(wt),
+                 y = mean(mpg)), col = "red",
+             size = 3)
+```
+
+Pearson's r - measures the linear relationship between two variables - goes from -1 to +1 ()
+
+```{r}
+noisy_bivariate <- function(noise = 1, gradient = 1){
+  x <- runif(n = 200, min = 0, max = 10)
+  y <- gradient * x + 10
+  y_scatter <- noise * 4 * rnorm(n = 200)
+  y <- y + y_scatter
+  data = tibble(x, y)
+
+  r <- round(cor(x, y), 4)
+  title <- paste(
+    "noise = ", noise,
+    ", gradient = ", gradient,
+    ", r = ", r
+  )
+  
+  data %>%
+    ggplot(aes(x = x, y = y)) +
+    geom_point() +
+    xlim(0, 10) +
+    ylim(min(c(min(y), 0)), max(c(max(y), 10))) +
+    ggtitle(title)
+  
+}
+noisy_bivariate(noise = 0, gradient = 0)
+```
+
+
+
+```{r}
+mtcars %>% 
+  summarise(cor(mpg, wt))
+```
+
+Remember to visualise your data before you run a correlation
+
+```{r}
+head(anscombe, 3)
+```
+
+```{r}
+# Pivot longer:
+anscombe_long <- anscombe %>%
+pivot_longer(everything(),
+names_to = c(".value", "set"),
+names_pattern = c("(\\D+)(\\d+)"))
+
+# Group by set and get the correlation coefficient for each:
+anscombe_long %>%
+group_by(set) %>%
+summarise(r = cor(x, y))
+
+# Plot the quartet:
+anscombe_long %>%
+ggplot() +
+aes(x = x, y = y) +
+geom_point() +
+facet_wrap(~set)
+```
+
+## Task - 10 minutes
+Now calculate the four correlation coefficients between the data pairs plotted above (x1 with y1 and so on). The data can be found in the built-in anscombe dataset.
+What do you notice about the correlation coefficients?
+Looking at each plot, think about whether the resulting coefficient accurately represents the pattern in the data.
+
+```{r}
+anscombe %>% 
+  summarise(cor(x1, y1))
+
+anscombe %>% 
+  summarise(cor(x2, y2))
+
+anscombe %>% 
+  summarise(cor(x3, y3))
+
+anscombe %>% 
+  summarise(cor(x4, y4))
+```
+
+## Task - 15 mins Let’s calculate correlation coefficients for various variables in the state.x77 dataset!
+Examine the contents of this dataset (try accessing documentation via ?state.x77 or running summary() on it).
+Choose a few combinations of variables to plot as y
+y versus x
+x and calculate the correlation coefficients for the same combinations. Do you find any strong correlations?
+Have a think about what kind of evidence you would need to be able to claim that any of the correlations you find are due to a causal relationship between the variables.
+[Hint the dataset is a matrix so convert it to a tibble first via tibble_states <- clean_names(as_tibble(state.x77)) to make manipulations easier].
+
+
+```{r}
+tibble_states <- clean_names(as_tibble(state.x77))
+tibble_states
+```
+
+
+```{r}
+tibble_states %>% 
+  ggplot(aes(x = income,
+             y = illiteracy))+
+  geom_point()
+
+tibble_states %>% 
+  summarise(cor(income, illiteracy))
+```
+
+```{r}
+tibble_states %>% 
+  ggplot(aes(x = murder,
+             y = population))+
+  geom_point()
+
+tibble_states %>% 
+  summarise(cor(murder, population))
+```
+
+```{r}
+tibble_states %>% 
+  ggplot(aes(x = hs_grad,
+             y = illiteracy))+
+  geom_point()
+
+tibble_states %>% 
+  summarise(cor(hs_grad, illiteracy))
+```
+
+```{r}
+tibble_states %>% 
+  ggplot(aes(x = life_exp,
+             y = income))+
+  geom_point()
+
+tibble_states %>% 
+  summarise(cor(life_exp, income))
+```
+
+```{r}
+tibble_states %>% 
+  ggplot(aes(x = life_exp,
+             y = frost))+
+  geom_point()
+
+tibble_states %>% 
+  summarise(cor(life_exp, frost))
+```
+
+```{r}
+tibble_states %>% 
+  ggplot(aes(x = murder,
+             y = illiteracy))+
+  geom_point()
+
+tibble_states %>% 
+  summarise(cor(murder, illiteracy))
+```
+# Creating the line of best fit
+
+
+```{r}
+line <- function(x, a, b){
+  return(a * x + b)
+}
+
+data <- tibble(
+  x = seq(-5, 5, 0.1),
+  y = line(x, a = 2, b = -1)
+)
+
+data %>% 
+  ggplot(aes(x, y)) +
+  geom_line(col = "firebrick") +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0)
+```
+
+
+## Task - 5 mins
+Play around plotting two or three different lines.
+Try a line with a=0
+a=0 and positive b.
+You can use mutate() to overwrite y in data from above
+Can we use our line() function to plot a perfectly vertical line?
+
+```{r}
+data <- tibble(
+  x = seq(-5, 5, 0.1),
+  y = line(x, a = 0, b = 0)
+)
+
+data %>% 
+  ggplot(aes(x, y)) +
+  geom_line(col = "firebrick") +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0)
+```
+
+```{r}
+noisy_line <- read_csv("data/noisy_line.csv")
+
+noisy_line_plot <- noisy_line %>%
+  ggplot(aes(x, y)) +
+  geom_point()
+noisy_line_plot
+```
+
+```{r}
+centroid <- noisy_line %>% 
+  summarise(x = mean(x),
+            y = mean(y))
+centroid
+```
+
+```{r}
+noisy_line_plot <- noisy_line_plot +
+  geom_point(aes(x = centroid$x, y = centroid$y),
+             col = "red", size = 3)
+noisy_line_plot
+```
+
+
+```{r}
+get_intercept <- function(slope, centroid_x, centroid_y){
+  return(centroid_y - slope * centroid_x)
+}
+```
+
+```{r}
+slope = 2.1
+noisy_line_plot +
+  geom_abline(slope = slope, intercept = get_intercept(
+    slope,
+    centroid$x,
+    centroid$y
+  ))
+```
+
+```{r}
+noisy_line_plot +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+Principle of parsimony
+Occam's razor - given two or more explanations of comparable quality, the simplest explanation is the best one
+
+# Linear regression
+
+Explanatory / Independent / Predictor variable(s)
+Outcome / Dependent / Response variable
+
+## Simple linear regression
+
+Fit a straight line relationship between one predictor variable with a response.
+
+```{r}
+height <- c(176, 164, 181, 168, 195, 185, 166, 180, 188, 174)
+weight <- c(82, 65, 85, 76, 90, 92, 68, 83, 94, 74)
+```
+
+```{r}
+sample <- tibble(
+  weight,
+  height
+)
+```
+
+```{r}
+sample %>% 
+  ggplot(aes(x = weight,
+             y = height)) +
+  geom_point()
+```
+
+```{r}
+line <- function(x, b0, b1){
+  return(b0 + x * b1)
+}
+```
+
+```{r}
+b0 <- 95
+b1 <- 1
+
+sample <- sample %>% 
+  mutate(fitted_height = line(x = weight,
+                              b0 = b0,
+                              b1 = b1))
+```
+
+```{r}
+sample %>% 
+  ggplot(aes(x = weight,
+             y = height)) +
+  geom_point() +
+  geom_point(aes(y = fitted_height), shape = 1) +
+  geom_abline(slope = b1, intercept = b0, col = "red") +
+  geom_segment(aes(xend = weight, yend = fitted_height,
+                   alpha = 0.5))
+```
+
+```{r}
+sample <- sample %>% 
+  mutate(residual = height - fitted_height)
+
+sample
+```
+
+```{r}
+sample %>% 
+  summarise(sun_residuals = sum(residual))
+```
+
+```{r}
+sample <- sample %>% 
+  mutate(sq_resid = residual ^ 2)
+sample
+```
+
+```{r}
+sample %>% 
+  summarise(sun_sq_resid = sum(sq_resid))
+```
+
+```{r}
+model <- lm(formula = height ~ weight, 
+            data = sample)
+model
+```
+
+```{r}
+fitted(model)
+```
+
+```{r}
+model %>% 
+  predict(newdata = data.frame(weight = c(78)))
+```
+
+```{r}
+sample <- sample %>% 
+  select(-c(fitted_height, residual, sq_resid)) %>% 
+  add_predictions(model) %>% 
+  add_residuals(model)
+
+sample
+```
+
+```{r}
+sample %>% 
+  ggplot(aes(x = weight)) +
+  geom_point(aes(y = height)) +
+  geom_line(aes(y = pred), col = "red")
+```
+
+```{r}
+
+weights_predict <- tibble(
+  weight = 50:120
+)
+
+weights_predict %>% 
+  add_predictions(model)
+```
+
+# Regression diagnostics
+
+```{r}
+sample %>% 
+  select(-c(pred, resid))
+```
+
+```{r}
+summary(model)
+```
+
+```{r}
+model %>% tidy()
+```
+
+```{r}
+glance_output <- model %>% 
+  glance() %>% 
+  clean_names()
+glance_output
+```
+
+```{r}
+tidy_output <- model %>% 
+  tidy() %>% 
+  clean_names()
+tidy_output
+```
+
+```{r}
+glance_output$r_squared
+```
+
+```{r}
+sample %>% 
+  summarise(cor(weight, height))
+```
+
+# Diagnostic plots
+```{r}
+autoplot(model)
+```
+
+```{r}
+sample %>% 
+  add_residuals(model) %>% 
+  ggplot(aes(x = resid))+
+  geom_histogram(binwidth = 2)
+```
+
+## Task - 15 min
+
+We provide two data sets: distribution_1.csv and distribution_2.csv. Fitting a simple linear regression to each of these distributions leads to problems with the residuals for two different reasons. See if you can identify the problem in each case!
+Load the data set.
+1) Fit a simple linear regression taking y as the outcome and x as the explanatory variable, saving the model object.
+2) Check the diagnostic plots for the model object and identify the main problem you see with the residuals (use the autoplot() function).
+3)Finally, plot the data and overlay the best fit line (use add_predictions() to add a pred column to the data set, and then plot via geom_point() and geom_line()). Does this plot help you interpret the problem you found in the residuals?
+
+
+
+
+```{r}
+dist_1 <- read_csv("data/distribution_1.csv") %>% clean_names()
+dist_2 <- read_csv("data/distribution_2.csv") %>% clean_names()
+```
+
+```{r}
+model_1 <- lm(formula = y ~ x, 
+            data = dist_1)
+model_1
+
+model_2 <- lm(formula = y ~ x,
+              data = dist_2)
+model_2
+```
+
+```{r}
+model_1 %>% 
+  autoplot()
+```
+
+```{r}
+model_2 %>% autoplot()
+```
+
+
+```{r}
+dist_1 <- dist_1 %>% 
+  add_predictions(model_1) %>% 
+  add_residuals(model_1)
+
+dist_1 %>% 
+  ggplot(aes(x = x)) +
+  geom_point(aes(y = y)) +
+  geom_line(aes(y = pred), col = "red")
+```
+
+```{r}
+dist_2 <- dist_2 %>% 
+  add_predictions(model_2) %>% 
+  add_residuals(model_2)
+
+dist_2 %>% 
+  ggplot(aes(x = x)) +
+  geom_point(aes(y = y)) +
+  geom_line(aes(y = pred), col = "red")
+```
+
+# Bootstrapping regression
+
+```{r}
+library(infer)
+```
+
+```{r}
+bootstrap_dist_slope <- dist_2 %>% 
+  specify(formula = y~x) %>% 
+  generate(reps = 10000, type = "bootstrap") %>% 
+  calculate(stat = "slope")
+
+slope_ci95 <- bootstrap_dist_slope %>% 
+  get_ci(level = 0.95, type = "percentile")
+
+slope_ci95
+```
+
+```{r}
+bootstrap_dist_slope %>% 
+  visualise(bins = 30) +
+  shade_ci(endpoints = slope_ci95)
+```
+
+```{r}
+model_2 %>% tidy(conf.int = TRUE, conf.level = 0.95) %>% 
+  clean_names()
+```
+

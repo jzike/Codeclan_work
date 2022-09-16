@@ -1,0 +1,240 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(car)
+library(modelr)
+library(skimr)
+library(GGally)
+library(ggfortify)
+
+skim(Prestige)
+```
+
+# Manual models
+
+```{r}
+ prestige_trim <- Prestige %>% 
+ drop_na() %>% 
+  select(-census)
+```
+
+## Feature engineering: logged some positively skewed numerics
+
+```{r}
+prestige_trim <- prestige_trim %>% 
+  mutate(ln_women = log(1 + women),
+         ln_income = log(income))
+```
+
+```{r}
+prestige_trim %>% 
+  select(-c(ln_women, ln_income)) %>% 
+  select(prestige, everything()) %>% 
+  ggpairs(aes(colour = type, alpha = 0.5))
+```
+
+```{r}
+prestige_trim %>% 
+  select(prestige,ln_women, ln_income, type) %>% 
+  #select(prestige, everything()) %>% 
+  ggpairs(aes(colour = type, alpha = 0.5))
+```
+
+```{r}
+prestige_trim %>% 
+  slice_max(income, n = 10)
+```
+
+```{r}
+mod1a <- lm(prestige ~ education,
+            data = prestige_trim)
+
+summary(mod1a)
+```
+
+```{r}
+autoplot(mod1a)
+```
+
+```{r}
+mod1b <- lm(prestige ~ type, data = prestige_trim)
+
+autoplot(mod1b)
+
+summary(mod1b)
+```
+
+type bc has an average prestige value of 35.52
+
+For professional type jobs, we can expect to see, on average, an increase of 32.32 in prestige score compared to blue collar type jobs
+For white coller type jobs, we can expect to see, on average, an increase of 6.7 in prestige score compared to blue collar type jobs
+The model explains 70% of the variation in prestige score
+
+
+Now we want to see which variables describe the "residue", the unexplained model error
+
+```{r}
+prestige_resid <- prestige_trim %>% 
+  add_residuals(mod1a) %>% 
+  select(-c(prestige, education))
+
+prestige_resid %>% 
+  select(resid, everything()) %>% 
+  ggpairs(aes(colour = type, alpha = 0.5))
+```
+
+## add a second predictor: next best 
+i.e. the one that explains the most residual error
+
+```{r}
+mod2a <- lm(prestige ~ education + ln_income, 
+            data = prestige_trim)
+
+summary(mod2a)
+
+autoplot(mod2a)
+```
+
+```{r}
+mod2b <- lm(prestige ~ education + income,
+            data = prestige_trim)
+
+summary(mod2b)
+```
+
+```{r}
+mod2c <- lm(prestige ~ education + type,
+            data = prestige_trim)
+
+summary(mod2c)
+```
+
+mod2a gave the biggest uplift in r2 and residuals look great - add it in to the model
+
+
+## check of significance of categorical: ANOVA test
+```{r}
+anova(mod1a, mod2c)
+```
+
+it is statistically significant (i.e. the 3 levels have different means), so we can include type in the model with education
+
+
+## third predictor!
+```{r}
+prestige_resid <- prestige_trim %>% 
+  add_residuals(mod2a) %>% 
+  select(-c(prestige, education, ln_income))
+
+prestige_resid %>% 
+  select(resid, everything()) %>% 
+  ggpairs(aes(colour = type, alpha = 0.5))
+```
+
+```{r}
+mod3a <- lm(prestige ~ education + ln_income + women,
+            data = prestige_trim)
+
+summary(mod3a)
+```
+
+```{r}
+mod3b <- lm(prestige ~ education + ln_income + type,
+            data = prestige_trim)
+
+summary(mod3b)
+```
+
+```{r}
+autoplot(mod3b)
+```
+
+```{r}
+anova(mod2a, mod3b)
+```
+
+Diagnostic plots are fine, anova test is significant, let's add type to the model.
+
+## adding an interaction (between existing main effects)
+
+```{r}
+prestige_resid <- prestige_trim %>% 
+  add_residuals(mod3b) %>% 
+  select(-prestige)
+```
+
+```{r}
+coplot(resid ~ ln_income | education,
+       panel = function(x, y, ...){
+         points(x, y)
+         abline(lm(y ~ x), col = "blue")
+       },
+       data = prestige_resid,
+       rows = 1)
+```
+
+The effects of income are different for different levels of education, so it could be worth adding them into the model
+
+```{r}
+prestige_resid %>% 
+  ggplot(aes(x = education,
+             y = resid,
+             colour = type))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+The effects of education are different for different types of workers 
+
+```{r}
+prestige_resid %>% 
+  ggplot(aes(x = ln_income,
+             y = resid,
+             colour = type))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+mod4a <- lm(prestige ~ education + ln_income + type +
+              education:ln_income,
+            data = prestige_trim)
+
+summary(mod4a)
+```
+
+```{r}
+mod4b <- lm(prestige ~ education + ln_income + type +
+              education:type,
+            data = prestige_trim)
+
+summary(mod4b)
+```
+
+```{r}
+mod4c <- lm(prestige ~ education + ln_income + type +
+              ln_income:type,
+            data = prestige_trim)
+
+summary(mod4c)
+```
+
+```{r}
+autoplot(mod4c)
+```
+
+```{r}
+anova(mod3b, mod4c)
+```
+
+```{r}
+#this breaks down the relative importance of each of the predictors - it breaks down the r^2 value 
+library(relaimpo)
+
+calc.relimp(mod4c, type = "lmg", rela = TRUE)
+```
+

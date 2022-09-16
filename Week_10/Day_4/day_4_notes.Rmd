@@ -1,0 +1,438 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Libraries
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(caret)
+library(leaps)
+library(glmulti)
+```
+
+# Lesson 1 - Overfitting
+
+Data = Pattern + Noise
+
+```{r}
+savings <- CodeClanData::savings
+```
+
+```{r}
+model_overfit <- lm(savings ~ ., savings)
+plot(model_overfit)
+
+summary(model_overfit)
+```
+
+```{r}
+model_wellfit <- lm(savings ~ salary + age + retired, savings)
+
+plot(model_wellfit)
+
+summary(model_wellfit)
+```
+```{r}
+model_underfit <- lm(savings ~ salary, savings)
+plot(model_underfit)
+
+summary(model_underfit)
+```
+
+## Principle of parsimony
+
+Models should be as simple as possible, but no simpler
+
+Goodness of fit
+- R^2
+- adj R^2
+
+
+- AIC - Akaike information criterion
+- BIC - Bayesian info criterion - penalises more strongly, which means you tend towards smaller models
+
+Based on likelihood - different from probability/chance.
+
+Not really goodness of fit measures - really they are relative goodness of fit measures (comparing one model with another model)
+
+R^2 Larger is better
+A/B IC smaller is better
+
+```{r}
+summary(model_overfit)$adj.r.squared
+summary(model_wellfit)$adj.r.squared
+summary(model_underfit)$adj.r.squared
+
+AIC(model_overfit)
+AIC(model_wellfit)
+AIC(model_underfit)
+
+BIC(model_overfit)
+BIC(model_wellfit)
+BIC(model_underfit)
+
+```
+
+```{r}
+summary(model_overfit)
+broom::glance(model_overfit)
+broom::tidy(model_overfit)
+```
+
+# Lesson 2 - Test / train sets
+
+_split data before we look at it_
+
+- Okay to go through _basic_ cleaning steps before splitting
+- but don't explore for patterns or relationships at this point
+
+Create a test set - used to test the model on "unseen" data
+separate from the training set
+don't refer to it ever again
+until the model is built
+
+
+The remaining data is our _training_ data
+
+We want to use as much of the data as possible for the training phase, but still have enough left to account for variety of cases that might come up.
+
+90 / 10 - 
+80 / 20
+70 / 30
+
+No hard and fast rule, depends on your dataset - how much data do you have?
+
+## Test / train in R
+
+```{r}
+set.seed(9) #we don't really do this irl, unless you're trying to illustrate something e.g. for an audience to highlight certain things
+
+n_data <- nrow(savings)
+
+test_index <- sample(1:n_data, size = n_data * 0.2)
+
+test <- slice(savings, test_index)
+train <- slice(savings, -test_index)
+```
+
+### Fit a model to the __training__ set
+
+```{r}
+model <- lm(savings ~ salary + age + retired, train)
+autoplot(model)
+
+```
+
+```{r}
+#add predictions to the test set from the training set to see how much error there is in the model - e.g how prediction compares with actual test values
+predictions_test <- test %>% 
+  add_predictions(model) %>% 
+  select(savings, pred)
+```
+
+```{r}
+(predictions_test$pred - test$savings)^2
+mse_test <- mean((predictions_test$pred - test$savings)^2)
+mse_test # normally this will be square-rooted --> RMSE
+
+sqrt(mse_test)
+```
+
+get data
+cleaning
+basic exploration
+_split data_
+train model - used to create predictions
+compare model on test set
+
+
+
+## Task - 10 mi9nutes
+
+Calculate the mean squared error between predicted saving and actual savings in the training dataset
+
+Which is higher, then error on the test or the error on the training data? Is this what you would expect
+
+```{r}
+predictions_train <- train %>% 
+  add_predictions(model) %>% 
+  select(savings, pred)
+
+mse_train <- mean((predictions_train$pred - train$savings)^2)
+mse_train # normally this will be square-rooted --> RMSE
+
+sqrt(mse_train)
+```
+The error is lower on the training set, I would expect this b/c the model was trained on the data from this set and not on the data from the test set, so I would expect the model to perform better on the data is was trained on.
+
+
+# Lesson 3 - K-fold validation
+
+Bias - variance trade-off - a model with high bias (and low variance) won't match the dataset closely,
+while a model with low bias (and high variance) will match the dataset very closely
+
+Hyperparameters - a model setting (how is the model going to work) in K2 validation, you can tweak them to fit the data better
+
+```{r}
+cv_10_fold <- trainControl(method = "cv",
+                           number = 10,
+                           savePredictions = TRUE)
+
+model <- train(savings ~ salary + age + retired, 
+               data = savings,
+               trControl = cv_10_fold,
+               method = "lm")
+```
+
+```{r}
+model$pred
+```
+
+```{r}
+model$resample
+```
+
+```{r}
+mean(model$resample$RMSE)
+```
+
+### Task - 
+Find the average error and the average r-squared value across each fold, after doing a 10 fold cross validation using the model which has all the variables in it. 
+What does this tell you?
+Are these values as expected
+
+```{r}
+model2 <- train(savings ~ ., 
+               data = savings,
+               trControl = cv_10_fold,
+               method = "lm")
+
+model2$resample
+mean(model2$resample$RMSE)
+```
+
+## Test, training and validation sets
+
+20 / 80 - test, train
+20 / 60 / 20 - test, train, validate
+
+Hyperparameters - "model settings"
+
+data
+some model --- lots of different _types_ of model
+fit several models with varying _hyperparameters_
+use the _validation_ set to choose our hyperparameters
+retrain model on entire training set (60 + 20)
+test on the test set
+
+## Avoiding leaks
+
+_split before we look at it_
+
+- okay to go through _basic_ cleaning steps
+- but don't explore for patterns or relationship at this point
+- might be okay looking for some correlation
+- how would we handle NAs
+
+if you impute _before_ you split,
+realise the imputed values in the test set have been influenced by the train set
+- important that the test dataset has _no connection_ to the train dataset and imputing before splitting could cause data leakage from the test dataset into the training set (and training set into the test set).
+
+clean
+explore(minimally
+_split_
+  training set
+    imputations
+    train model
+    (validate)
+  test set
+    imputations
+
+We can prevent data leakage by ensuring our pre-processing is done in the training dataset separately from our testing/validation set, as well as ensuring the variables we select are useful predictors that would be available to us at the point that we want to apply our model.
+
+# Lesson 4 - Automated model development
+
+## Learning objectives
+
+- Understand _forward_selection, _backwards_ selection and _best subset_ selection
+- Learn how to use the 'leaps' package
+- Understand the _limitations_ of automated model selection
+
+## Data
+
+```{r}
+insurance <- CodeClanData::insurance
+```
+## Forward selection
+
+- Starts with a "Null" model 
+  -intercept only
+- At each step, we check all predictors
+- Find the one that raises adj R^2 the most
+- Add that predictor to the model
+
+1. prestige ~ education
+2. prestige ~ eduction + income
+3. prestige ~ education + income + type
+4. prestige ~ education + income + type + income:type
+
+## Backwards selection
+
+- Start with a "FULL" model
+- Remove preds sequentially, see with lowers the adj R^2 the least
+  - remove from the model
+  
+## Best subset
+
+- Find all possible combinations of predictors and interactions
+- Keep the one with the best metric
+
+_options increase exponentially_
+Very computationally intensive
+
+__predictive vs explanatory__ modelling
+
+## Leaps package
+
+-Limitations
+  -it will happily include only some levels of a categorical variable - which is generally considered bad practice
+  -it does not handle interactions very well
+  -we can only test model fit using penalised measures of fit, not using test/train splits or K-fold cross validation
+
+
+```{r}
+regsubsets_forward <- regsubsets(charges ~ ., 
+                                 data = insurance,
+                                 nvmax = 8,#max number of variables
+                                 method = "forward") 
+
+sum_regsubsets_forward <- summary(regsubsets_forward)
+```
+
+```{r}
+sum_regsubsets_forward$which
+```
+
+```{r}
+plot(regsubsets_forward, 
+     scale = "adjr2")
+```
+
+```{r}
+plot(regsubsets_forward, scale = "bic")
+```
+
+```{r}
+plot(sum_regsubsets_forward$rsq,
+     type = "o,
+     pch = 20")
+plot(sum_regsubsets_forward$bic,
+     type = "o,
+     pch = 20")
+```
+
+## Task 10 min
+
+Re-run the analyses above using the backward selection and exhaustive search variable selection methods
+
+Compare the tables (or plots, whichever you find easier) showing which predictors are included for forward selection, backward selection, and exhaustive search.
+
+Do you find any differences? Use adjusted R-squared as your measure of fit.
+
+```{r}
+regsubsets_backward <- regsubsets(charges ~ ., 
+                                 data = insurance,
+                                 nvmax = 8,#max number of variables
+                                 method = "backward") 
+
+sum_regsubsets_backward <- summary(regsubsets_backward)
+
+sum_regsubsets_backward$which
+
+plot(regsubsets_backward, 
+     scale = "adjr2")
+
+plot(sum_regsubsets_backward$rsq,
+     type = "o,
+     pch = 20")
+plot(sum_regsubsets_backward$bic,
+     type = "o,
+     pch = 20")
+```
+
+```{r}
+regsubsets_exhaustive <- regsubsets(charges ~ ., 
+                                 data = insurance,
+                                 nvmax = 8,#max number of variables
+                                 method = "exhaustive") 
+
+sum_regsubsets_exhaustive <- summary(regsubsets_exhaustive)
+
+sum_regsubsets_exhaustive$which
+
+plot(regsubsets_exhaustive, 
+     scale = "adjr2")
+
+plot(sum_regsubsets_exhaustive$rsq,
+     type = "o,
+     pch = 20")
+plot(sum_regsubsets_exhaustive$bic,
+     type = "o,
+     pch = 20")
+```
+
+```{r}
+summary(regsubsets_exhaustive)$which[6, ]
+```
+
+```{r}
+mod_without_region <- lm(charges ~ age + bmi + children + smoker, 
+                         data = insurance)
+summary(mod_without_region)
+
+mod_with_region <- lm(charges ~ age + bmi + children + smoker + region, 
+                         data = insurance)
+summary(mod_with_region)
+```
+
+```{r}
+anova(mod_without_region, mod_with_region)
+```
+
+```{r}
+insurance <- insurance %>% 
+  mutate(location = substr(region, 1, 5))
+```
+
+```{r}
+mod_region_comb <- lm(charges ~ age + bmi + children + smoker + location, 
+                         data = insurance)
+summary(mod_region_comb)
+```
+
+```{r}
+anova(mod_without_region, mod_region_comb)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_without_region)
+plot(mod_with_region)
+plot(mod_region_comb)
+```
+
+```{r}
+summary(regsubsets_exhaustive)$which[4, ]
+```
+
+```{r}
+mod_4_subset <- lm(charges ~ age + bmi + children + smoker, 
+                         data = insurance)
+
+plot(mod_4_subset)
+summary(mod_4_subset)
+```
+
